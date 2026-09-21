@@ -74,9 +74,15 @@ import dj_database_url
 
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 
+# Vercel provides DATABASE_URL as a PostgreSQL URI. Keep the fallback local so
+# Django's management commands can still run when the variable is unavailable.
 if DATABASE_URL.startswith(("postgres://", "postgresql://")):
     DATABASES = {
-        "default": dj_database_url.config(default=DATABASE_URL, conn_max_age=0, ssl_require=True)
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=0,
+            ssl_require=True,
+        )
     }
 else:
     DATABASES = {
