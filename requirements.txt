@@ -3,7 +3,7 @@ Pillow
 gunicorn
 python-dotenv
 psycopg2-binary
-dj_database_url
+dj-database-url
 cloudinary
-cloudinary_storage
+django-cloudinary-storage
 whitenoise
