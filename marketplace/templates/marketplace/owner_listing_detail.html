@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}Gestion — {{ listing.title }} — {{ platform_settings.site_name|default:'Marché Local' }}{% endblock %}
+
+{% block extra_head %}
+<style>
+.owner-shell{max-width:1220px;margin:0 auto}.owner-card{box-shadow:0 18px 50px rgba(15,23,42,.06)}
+@media(max-width:640px){.owner-shell{width:100%}}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="px-4 py-6 sm:px-6 lg:px-8 lg:py-9" x-data="ownerListing()">
+    <div class="owner-shell">
+        <div class="flex min-w-0 flex-wrap items-center justify-between gap-3">
+            <a href="{% url 'marketplace:my_listings' %}" class="inline-flex items-center gap-2 text-sm font-black text-slate-500 transition hover:text-slate-950"><i data-lucide="arrow-left" class="h-4 w-4"></i> Mes annonces</a>
+            <div class="flex flex-wrap gap-2">
+                <a href="{% url 'marketplace:edit_listing' listing.slug %}" class="inline-flex items-center gap-2 rounded-2xl bg-amber-400 px-4 py-2.5 text-xs font-black text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:bg-amber-300"><i data-lucide="pencil" class="h-4 w-4"></i> Modifier</a>
+                <a href="{% url 'marketplace:listing_detail' listing.slug %}" class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-slate-700 shadow-sm transition hover:-translate-y-0.5"><i data-lucide="external-link" class="h-4 w-4"></i> Voir l’annonce</a>
+            </div>
+        </div>
+
+        <div class="owner-card mt-5 overflow-hidden rounded-[30px] border border-slate-200 bg-white">
+            <div class="relative overflow-hidden bg-slate-950 p-6 text-white sm:p-8">
+                <div class="absolute -right-20 -top-24 h-72 w-72 rounded-full bg-amber-300/15 blur-3xl"></div>
+                <div class="relative grid gap-6 md:grid-cols-[180px_minmax(0,1fr)_auto] md:items-center">
+                    <div class="aspect-[4/3] overflow-hidden rounded-2xl bg-white/10">
+                        {% with image=listing.images.first %}{% if image %}<img src="{{ image.image.url }}" alt="" class="h-full w-full object-cover">{% else %}<div class="grid h-full place-items-center text-slate-500"><i data-lucide="image" class="h-10 w-10"></i></div>{% endif %}{% endwith %}
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-black uppercase tracking-[.17em] text-amber-300">Gestion de l’annonce</p>
+                        <h1 class="mt-2 break-words font-display text-2xl font-black leading-tight tracking-tight sm:text-3xl">{{ listing.title }}</h1>
+                        <p class="mt-2 text-sm text-slate-300">{{ listing.city.name }}{% if listing.neighborhood %} · {{ listing.neighborhood.name }}{% endif %} · {{ listing.category.name }}</p>
+                        <p class="mt-3 text-xs text-slate-400">Créée le {{ listing.created_at|date:'d/m/Y' }} · expire le {{ listing.expires_at|date:'d/m/Y à H:i' }}</p>
+                    </div>
+                    <div class="md:text-right">
+                        <span class="inline-flex rounded-full bg-white/10 px-3 py-2 text-xs font-black">{{ listing.get_status_display }}</span>
+                        {% if listing.status == 'published' %}<p class="mt-2 text-xs text-slate-400">Encore {{ listing.days_left }} jour{{ listing.days_left|pluralize }}</p>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 divide-x divide-y border-b border-slate-200 sm:grid-cols-5 sm:divide-y-0">
+                <div class="p-5"><p class="text-xs font-bold text-slate-400">Vues</p><p class="mt-1 font-display text-2xl font-black">{{ listing.views_count }}</p></div>
+                <div class="p-5"><p class="text-xs font-bold text-slate-400">WhatsApp</p><p class="mt-1 font-display text-2xl font-black">{{ listing.whatsapp_clicks }}</p></div>
+                <div class="p-5"><p class="text-xs font-bold text-slate-400">Appels</p><p class="mt-1 font-display text-2xl font-black">{{ listing.call_clicks }}</p></div>
+                <div class="p-5"><p class="text-xs font-bold text-slate-400">Partages</p><p class="mt-1 font-display text-2xl font-black">{{ listing.share_count }}</p></div>
+                <div class="p-5"><p class="text-xs font-bold text-slate-400">Signalements</p><p class="mt-1 font-display text-2xl font-black">{{ listing.report_count }}</p></div>
+            </div>
+        </div>
+
+        {% if platform_settings.monetization_enabled %}
+        <div x-data="boostBox()" class="owner-card mt-5 overflow-hidden rounded-[26px] border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-5 sm:p-6">
+            <p class="text-[10px] font-black uppercase tracking-[.16em] text-amber-700">Promotion future</p>
+            <h2 class="mt-1 font-display text-xl font-black text-slate-950">Mettre cette annonce en avant</h2>
+            <p class="mt-1 text-sm leading-6 text-slate-600">Les plans existent déjà pour votre futur fournisseur de paiement. Rien n’est débité tant que votre intégration n’est pas branchée.</p>
+            <div class="mt-5 grid gap-3 md:grid-cols-3">
+                {% for plan in boost_plans %}
+                <button type="button" @click="start('{{ plan.pk }}')" class="rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                    <div class="flex items-center justify-between gap-3"><span class="text-xs font-black uppercase tracking-wide text-slate-400">{{ plan.name }}</span><span class="rounded-full bg-slate-950 px-2 py-1 text-[9px] font-black text-amber-300">{{ plan.promotion_type }}</span></div>
+                    <div class="mt-3 font-display text-2xl font-black text-slate-950">{{ plan.price|floatformat:0 }} {{ plan.currency }}</div>
+                    <p class="mt-1 text-xs font-bold text-slate-500">{{ plan.duration_days }} jours</p>
+                </button>
+                {% empty %}<div class="rounded-2xl bg-white p-4 text-sm font-semibold text-slate-500 ring-1 ring-slate-200">Aucun plan actif.</div>{% endfor %}
+            </div>
+            <p x-show="message" x-text="message" class="mt-4 rounded-xl bg-white px-3 py-2 text-xs font-bold text-slate-600 ring-1 ring-slate-200"></p>
+        </div>
+        {% endif %}
+
+        <div class="mt-5 grid gap-5 lg:grid-cols-[.82fr_1.18fr]">
+            <div class="owner-card rounded-[26px] border border-slate-200 bg-white p-5 sm:p-6">
+                <p class="text-[10px] font-black uppercase tracking-[.16em] text-amber-600">Actions</p>
+                <h2 class="mt-1 font-display text-xl font-black text-slate-950">Contrôler la publication</h2>
+                <div class="mt-5 grid gap-2">
+                    {% if listing.status == 'published' or listing.status == 'paused' %}
+                    <form method="post" action="{% url 'marketplace:owner_toggle_pause' listing.slug %}">
+                        {% csrf_token %}
+                        <button type="submit" class="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left transition hover:bg-white hover:shadow-sm"><span class="flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-xl bg-white"><i data-lucide="{% if listing.status == 'published' %}pause{% else %}play{% endif %}" class="h-4 w-4"></i></span><span><strong class="block text-sm">{% if listing.status == 'published' %}Mettre en pause{% else %}Reprendre{% endif %}</strong><small class="text-xs text-slate-500">Modifier la visibilité publique.</small></span></span><i data-lucide="chevron-right" class="h-4 w-4 text-slate-400"></i></button>
+                    </form>
+                    {% endif %}
+
+                    {% if listing.status != 'sold' and listing.status != 'archived' %}
+                    <form method="post" action="{% url 'marketplace:owner_mark_sold' listing.slug %}" @submit="confirmAction($event,'Marquer cette annonce comme vendue ?')">
+                        {% csrf_token %}
+                        <button type="submit" class="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left transition hover:bg-white hover:shadow-sm"><span class="flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-xl bg-white"><i data-lucide="badge-check" class="h-4 w-4"></i></span><span><strong class="block text-sm">Marquer comme vendue</strong><small class="text-xs text-slate-500">Conserver l’annonce dans votre historique.</small></span></span><i data-lucide="chevron-right" class="h-4 w-4 text-slate-400"></i></button>
+                    </form>
+                    {% endif %}
+
+                    {% if listing.status == 'expired' or listing.status == 'sold' or listing.status == 'paused' %}
+                    <div x-data="renewBox()" class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                        <div class="flex items-start gap-3"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-emerald-700"><i data-lucide="rotate-cw" class="h-4 w-4"></i></span><div><strong class="block text-sm text-emerald-900">Renouveler l’annonce</strong><p class="mt-1 text-xs leading-5 text-emerald-800/70">Choisissez une nouvelle durée, toujours limitée à 30 jours.</p></div></div>
+                        <form method="post" action="{% url 'marketplace:owner_renew' listing.slug %}" class="mt-4 grid grid-cols-[1fr_auto] gap-2">
+                            {% csrf_token %}
+                            <select name="days" class="min-w-0 rounded-xl border border-emerald-200 bg-white px-3 py-3 text-base font-black text-slate-800 outline-none sm:text-sm">
+                                <option value="1">1 jour</option><option value="3">3 jours</option><option value="7">7 jours</option><option value="14">14 jours</option><option value="21">21 jours</option><option value="30" selected>30 jours</option>
+                            </select>
+                            <button class="rounded-xl bg-emerald-600 px-4 py-3 text-xs font-black text-white transition hover:bg-emerald-500">Renouveler</button>
+                        </form>
+                    </div>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'marketplace:owner_delete' listing.slug %}" @submit="confirmAction($event,'Supprimer cette annonce ?')">
+                        {% csrf_token %}
+                        <button type="submit" class="flex w-full items-center justify-between rounded-2xl border border-rose-200 bg-rose-50 p-4 text-left transition hover:bg-rose-100"><span class="flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-xl bg-white text-rose-700"><i data-lucide="trash-2" class="h-4 w-4"></i></span><span><strong class="block text-sm text-rose-900">Supprimer</strong><small class="text-xs text-rose-700/70">L’annonce sera archivée, pas détruite physiquement.</small></span></span><i data-lucide="chevron-right" class="h-4 w-4 text-rose-700"></i></button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="owner-card rounded-[26px] border border-slate-200 bg-white p-5 sm:p-6">
+                <div class="flex items-center justify-between gap-3"><div><p class="text-[10px] font-black uppercase tracking-[.16em] text-slate-400">Activité récente</p><h2 class="mt-1 font-display text-xl font-black text-slate-950">Interactions</h2></div><span class="rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-black text-slate-600">{{ events|length }} affichées</span></div>
+                <div class="mt-5 grid gap-2">
+                    {% for event in events %}
+                    <div class="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 p-3">
+                        <div class="flex min-w-0 items-center gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-slate-600">{% if event.event_type == 'view' %}<i data-lucide="eye" class="h-4 w-4"></i>{% elif event.event_type == 'whatsapp' %}<i data-lucide="message-circle" class="h-4 w-4"></i>{% elif event.event_type == 'call' %}<i data-lucide="phone" class="h-4 w-4"></i>{% elif event.event_type == 'report' %}<i data-lucide="flag" class="h-4 w-4"></i>{% elif event.event_type == 'share' %}<i data-lucide="share-2" class="h-4 w-4"></i>{% else %}<i data-lucide="activity" class="h-4 w-4"></i>{% endif %}</span><div class="min-w-0"><p class="truncate text-xs font-black text-slate-800">{{ event.get_event_type_display }}{% if event.platform %} · {{ event.platform }}{% endif %}</p><p class="text-[10px] text-slate-400">{{ event.created_at|date:'d/m/Y H:i' }}</p></div></div>
+                    </div>
+                    {% empty %}<div class="rounded-2xl bg-slate-50 p-10 text-center text-sm font-semibold text-slate-500">Aucune activité pour le moment.</div>{% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+function ownerListing(){return{confirmAction(e,text){if(!window.confirm(text))e.preventDefault()}}}
+function renewBox(){return{}}
+function boostBox(){return{message:'',checkoutUrl:{{ boost_checkout_url_json|default:'\"\"'|safe }},async start(plan){this.message='Préparation du paiement…';try{const response=await fetch(this.checkoutUrl,{method:'POST',headers:{'X-CSRFToken':getCookie('csrftoken'),'X-Requested-With':'XMLHttpRequest','Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:new URLSearchParams({plan}),credentials:'same-origin'});const data=await response.json();this.message=data.message||data.error||'Réponse reçue.'}catch(error){this.message='Le module de paiement n’est pas encore connecté.'}}}}
+document.addEventListener('DOMContentLoaded',()=>{if(window.lucide)lucide.createIcons()});
+</script>
+{% endblock %}

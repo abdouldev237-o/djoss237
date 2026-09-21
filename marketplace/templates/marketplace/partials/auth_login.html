@@ -1,0 +1,70 @@
+<form
+    x-data="{loading:false}"
+    x-on:htmx:before-request="loading=true"
+    x-on:htmx:after-request="loading=false"
+    hx-post="{% url 'marketplace:login_htmx' %}"
+    hx-target="#authModalBody"
+    hx-swap="innerHTML"
+    hx-disabled-elt="this button[type='submit']"
+    class="space-y-5"
+>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.GET.next|default:'' }}">
+
+    {% if form.non_field_errors %}
+        <div class="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+            <i data-lucide="triangle-alert" class="mt-0.5 h-4 w-4 shrink-0"></i>
+            <span>{{ form.non_field_errors|striptags }}</span>
+        </div>
+    {% endif %}
+
+    <label class="block">
+        <span class="mb-2 block text-xs font-black uppercase tracking-[.08em] text-slate-500">Nom d’utilisateur ou téléphone</span>
+        <div class="relative">
+            <i data-lucide="user-round" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i>
+            <input
+                name="identifier"
+                value="{{ form.identifier.value|default:'' }}"
+                class="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-base font-semibold outline-none transition focus:border-slate-400 focus:bg-white sm:text-sm"
+                placeholder="abdoul ou 699 12 34 56"
+                autocomplete="username"
+                required
+            >
+        </div>
+        {% for error in form.identifier.errors %}<span class="mt-1.5 block text-xs font-semibold text-rose-600">{{ error }}</span>{% endfor %}
+    </label>
+
+    <label class="block">
+        <span class="mb-2 block text-xs font-black uppercase tracking-[.08em] text-slate-500">Mot de passe</span>
+        <div class="relative">
+            <i data-lucide="lock-keyhole" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i>
+            <input
+                name="password"
+                type="password"
+                class="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-base font-semibold outline-none transition focus:border-slate-400 focus:bg-white sm:text-sm"
+                placeholder="Votre mot de passe"
+                autocomplete="current-password"
+                required
+            >
+        </div>
+        {% for error in form.password.errors %}<span class="mt-1.5 block text-xs font-semibold text-rose-600">{{ error }}</span>{% endfor %}
+    </label>
+
+    <button
+        type="submit"
+        class="group flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-slate-950/10 transition hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-wait disabled:opacity-70"
+    >
+        <span x-show="!loading" x-transition.opacity class="inline-flex items-center gap-2">
+            Se connecter
+            <i data-lucide="arrow-right" class="h-4 w-4 transition group-hover:translate-x-0.5"></i>
+        </span>
+        <span x-show="loading" x-cloak class="inline-flex items-center gap-2">
+            <i data-lucide="loader-circle" class="h-4 w-4 animate-spin"></i>
+            Connexion…
+        </span>
+    </button>
+
+    <p class="text-center text-xs leading-5 text-slate-500">
+        Pas encore de compte ? Utilisez l’onglet <strong class="text-slate-800">Inscription</strong>.
+    </p>
+</form>

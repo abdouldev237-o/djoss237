@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Modifier mon profil — Marché Local{% endblock %}
+{% block extra_head %}
+<style>
+.profile-edit-shell{max-width:1000px}.profile-edit-card{box-shadow:0 25px 75px rgba(15,23,42,.08)}.profile-field-error{animation:profileError .25s ease-out}@keyframes profileError{0%{transform:translateX(0)}25%{transform:translateX(-3px)}50%{transform:translateX(3px)}75%{transform:translateX(-1px)}100%{transform:translateX(0)}}
+@media(max-width:640px){.profile-edit-input{font-size:16px!important}}
+</style>
+{% endblock %}
+{% block content %}
+<section class="px-4 py-7 sm:px-6 lg:px-8 lg:py-10">
+<div class="profile-edit-shell mx-auto">
+<a href="{% url 'marketplace:profile' request.user.username %}" class="mb-5 inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-950"><i data-lucide="arrow-left" class="h-4 w-4"></i> Retour à mon profil</a>
+<div class="grid gap-5 lg:grid-cols-[.7fr_1.3fr]">
+<aside class="relative overflow-hidden rounded-[30px] bg-slate-950 p-7 text-white shadow-2xl">
+<div class="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-amber-300/15 blur-3xl"></div>
+<div class="relative">
+<p class="text-[10px] font-black uppercase tracking-[.18em] text-amber-300">Votre identité</p>
+<h1 class="mt-3 font-display text-3xl font-black leading-tight">Un profil clair inspire plus confiance.</h1>
+<p class="mt-4 text-sm leading-7 text-slate-300">Ajoutez un nom visible, une courte présentation et votre ville. Vos identifiants de connexion restent séparés.</p>
+<div class="mt-7 grid gap-3">
+<div class="rounded-2xl border border-white/10 bg-white/5 p-4"><div class="flex gap-3"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10"><i data-lucide="user-round" class="h-4 w-4"></i></span><div><strong class="block text-sm">Nom public</strong><span class="text-xs text-slate-400">Ce que les visiteurs verront.</span></div></div></div>
+<div class="rounded-2xl border border-white/10 bg-white/5 p-4"><div class="flex gap-3"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10"><i data-lucide="map-pin" class="h-4 w-4"></i></span><div><strong class="block text-sm">Ville</strong><span class="text-xs text-slate-400">Utile pour votre présence locale.</span></div></div></div>
+<div class="rounded-2xl border border-white/10 bg-white/5 p-4"><div class="flex gap-3"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10"><i data-lucide="phone" class="h-4 w-4"></i></span><div><strong class="block text-sm">Téléphone</strong><span class="text-xs text-slate-400">Affichable publiquement seulement si vous l’autorisez.</span></div></div></div>
+</div></div></aside>
+
+<div class="profile-edit-card overflow-hidden rounded-[30px] border border-slate-200 bg-white">
+<div class="border-b border-slate-100 px-5 py-5 sm:px-7"><p class="text-[10px] font-black uppercase tracking-[.17em] text-amber-600">Mon profil</p><h2 class="mt-1 font-display text-2xl font-black text-slate-950">Modifier mon profil.</h2><p class="mt-2 text-sm leading-6 text-slate-500">Mettez à jour les informations visibles sur votre profil public.</p></div>
+<div class="px-5 py-6 sm:px-7">
+{% if form.non_field_errors %}<div class="profile-field-error mb-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700" role="alert">{{ form.non_field_errors|striptags }}</div>{% endif %}
+<form method="post" enctype="multipart/form-data" class="space-y-5">{% csrf_token %}
+<label class="block"><span class="mb-2 block text-[11px] font-black uppercase tracking-[.08em] text-slate-500">Nom affiché</span>{{ form.display_name }}{% for e in form.display_name.errors %}<small class="profile-field-error mt-1 block text-xs font-bold text-rose-600">{{ e }}</small>{% endfor %}</label>
+<label class="block"><span class="mb-2 block text-[11px] font-black uppercase tracking-[.08em] text-slate-500">Présentation</span>{{ form.bio }}{% for e in form.bio.errors %}<small class="profile-field-error mt-1 block text-xs font-bold text-rose-600">{{ e }}</small>{% endfor %}</label>
+<label class="block"><span class="mb-2 block text-[11px] font-black uppercase tracking-[.08em] text-slate-500">Ville</span>{{ form.city }}{% for e in form.city.errors %}<small class="profile-field-error mt-1 block text-xs font-bold text-rose-600">{{ e }}</small>{% endfor %}</label>
+<div><span class="mb-2 block text-[11px] font-black uppercase tracking-[.08em] text-slate-500">Photo de profil</span><div class="flex flex-col gap-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 sm:flex-row sm:items-center">{% if request.user.avatar %}<img src="{{ request.user.avatar.url }}" alt="" class="h-16 w-16 shrink-0 rounded-2xl object-cover ring-1 ring-slate-200">{% else %}<span class="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-slate-950 text-lg font-black text-white">{{ request.user.public_name|slice:':1'|upper }}</span>{% endif %}<div class="min-w-0 flex-1">{{ form.avatar }}<p class="mt-1 text-[11px] text-slate-400">JPG, PNG ou WEBP. Une image claire fonctionne mieux.</p>{% for e in form.avatar.errors %}<small class="profile-field-error mt-1 block text-xs font-bold text-rose-600">{{ e }}</small>{% endfor %}</div></div></div>
+<label class="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"><span class="pt-0.5">{{ form.show_phone }}</span><span><strong class="block text-sm font-black text-slate-800">Afficher mon numéro</strong><span class="mt-1 block text-xs leading-5 text-slate-500">Les visiteurs pourront voir votre numéro directement sur votre profil public.</span>{% for e in form.show_phone.errors %}<small class="profile-field-error mt-1 block text-xs font-bold text-rose-600">{{ e }}</small>{% endfor %}</span></label>
+<div class="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between"><p class="text-xs leading-5 text-slate-400">Vos informations servent uniquement à votre compte et à votre profil public selon vos réglages.</p><button type="submit" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-slate-950/10 transition hover:-translate-y-0.5 hover:bg-slate-800"><i data-lucide="save" class="h-4 w-4"></i> Enregistrer</button></div>
+</form></div></div></div></div>
+</section>
+{% endblock %}
+{% block extra_js %}<script>document.addEventListener('DOMContentLoaded',()=>{if(window.lucide)lucide.createIcons();});</script>{% endblock %}

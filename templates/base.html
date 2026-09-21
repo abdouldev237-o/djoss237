@@ -1,0 +1,646 @@
+{% load static %}
+<!doctype html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="description" content="Marché Local — annonces locales pour trouver, vendre et partager simplement au Cameroun.">
+    <meta name="theme-color" content="#0b1220">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="icon" type="image/png" href="{% static 'logo.png' %}">
+    <title>{% block title %}Marché Local — Trouvez. Vendez. Partagez.{% endblock %}</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.14.8/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/htmx/2.0.6/htmx.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.468.0"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        [x-cloak]{display:none!important}
+        [x-trap]{ }
+        body{overscroll-behavior-x:none}
+        main,header,footer,section,article,aside,nav,form,div{min-width:0}
+        img,svg,video,canvas{max-width:100%}
+        button,a,input,select,textarea{touch-action:manipulation}
+        .safe-area-x{padding-left:max(1rem,env(safe-area-inset-left));padding-right:max(1rem,env(safe-area-inset-right))}
+
+        .htmx-settling{transition:all .22s cubic-bezier(.2,.75,.25,1)}
+        .auth-modal-sheen{background:linear-gradient(120deg,rgba(255,255,255,.12),transparent 45%,rgba(245,158,11,.16))}
+        html,body{max-width:100%;overflow-x:hidden}
+        body{font-family:'DM Sans',ui-sans-serif,system-ui;background:#f8fafc;color:#0f172a;min-width:0;padding-bottom:env(safe-area-inset-bottom)}
+        .font-display{font-family:'Plus Jakarta Sans',ui-sans-serif,system-ui}
+        .page-bg{background:radial-gradient(circle at 85% 0%,rgba(245,158,11,.10),transparent 26%),linear-gradient(180deg,#fff 0%,#f8fafc 55%,#fff 100%)}
+        .glass{background:rgba(255,255,255,.80);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+        .text-balance{text-wrap:balance}
+        .line-clamp-2{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+        .line-clamp-3{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+        .htmx-request{opacity:.65;transition:opacity .2s ease}
+        .no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none;-ms-overflow-style:none}
+        .modal-open{overflow:hidden}.auth-scroll-lock{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}.safe-top{padding-top:env(safe-area-inset-top)}.safe-bottom{padding-bottom:env(safe-area-inset-bottom)} input,select,textarea{max-width:100%}@media(max-width:640px){input,select,textarea,button{font-size:16px!important}input,select,textarea{scroll-margin-top:90px}}
+
+        /* =====================================================
+           PREMIUM RESPONSIVE OVERRIDES
+        ====================================================== */
+
+        main { width: 100%; max-width: 100%; }
+
+        @media (max-width: 1023px) {
+            main { padding-bottom: 82px; }
+        }
+
+        .mobile-drawer-panel {
+            padding-bottom: max(24px, env(safe-area-inset-bottom));
+        }
+
+        .mobile-menu-card-glow {
+            position: relative;
+            overflow: hidden;
+        }
+        .mobile-menu-card-glow::after {
+            content: "";
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            right: -80px;
+            top: -90px;
+            border-radius: 999px;
+            background: rgba(245,158,11,.12);
+            pointer-events: none;
+        }
+
+        /* Tall auth/report modals stay usable on short phones. */
+        .modal-shell,
+        [role="dialog"] {
+            max-height: 100dvh;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            padding-top: max(12px, env(safe-area-inset-top));
+            padding-bottom: max(18px, env(safe-area-inset-bottom));
+        }
+        .modal-shell > * { max-height: calc(100dvh - 24px); }
+
+        /* =====================================================
+           MOBILE SIDEBAR — refined navigation
+        ====================================================== */
+        .mnav-section-label {
+            padding-inline: .35rem;
+            margin-bottom: .5rem;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: rgb(148 163 184);
+        }
+
+        .mnav-link {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: .875rem;
+            min-height: 3.25rem;
+            padding: .75rem .875rem;
+            border-radius: 1rem;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: rgb(15 23 42);
+            background: transparent;
+            transition: background-color .2s ease, transform .2s ease, box-shadow .2s ease;
+        }
+        .mnav-link:hover,
+        .mnav-link:focus-visible {
+            background: rgb(248 250 252);
+            outline: none;
+        }
+        .mnav-link:active { transform: scale(.985); }
+
+        .mnav-link[aria-current="page"] {
+            background: rgb(15 23 42);
+            color: #fff;
+            box-shadow: 0 12px 30px -12px rgba(15,23,42,.5);
+        }
+        .mnav-link[aria-current="page"] .mnav-icon {
+            background: rgba(255,255,255,.12);
+            color: #fcd34d;
+            box-shadow: none;
+        }
+        .mnav-link[aria-current="page"] .mnav-chevron { color: rgba(255,255,255,.55); }
+
+        .mnav-icon {
+            display: grid;
+            place-items: center;
+            flex: 0 0 auto;
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: .875rem;
+            background: #fff;
+            color: rgb(15 23 42);
+            box-shadow: 0 1px 2px rgba(15,23,42,.06), 0 0 0 1px rgba(226,232,240,.9) inset;
+            transition: background-color .2s ease, color .2s ease;
+        }
+        .mnav-icon svg { width: 1.05rem; height: 1.05rem; stroke-width: 2.2; }
+
+        .mnav-chevron {
+            margin-left: auto;
+            color: rgb(203 213 225);
+            transition: color .2s ease, transform .2s ease;
+        }
+        .mnav-chevron svg { width: 1rem; height: 1rem; }
+        .mnav-link:hover .mnav-chevron { color: rgb(148 163 184); transform: translateX(2px); }
+
+        .mnav-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.4rem;
+            padding: .125rem .45rem;
+            border-radius: 999px;
+            background: rgb(251 191 36);
+            color: rgb(15 23 42);
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 0;
+        }
+
+        .mnav-divider {
+            height: 1px;
+            margin: 1.25rem .35rem;
+            background: linear-gradient(to right, transparent, rgb(226 232 240) 15%, rgb(226 232 240) 85%, transparent);
+        }
+
+        /* Drawer scrollbar: subtle */
+        .mobile-drawer-panel::-webkit-scrollbar { width: 6px; }
+        .mobile-drawer-panel::-webkit-scrollbar-thumb { background: rgba(15,23,42,.12); border-radius: 999px; }
+        .mobile-drawer-panel::-webkit-scrollbar-track { background: transparent; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .mnav-link, .mnav-icon, .mnav-chevron { transition: none !important; }
+        }
+
+        @media (max-width: 640px) {
+            .publish-button { box-shadow: 0 8px 22px rgba(15,23,42,.14); }
+            .mobile-bottom-nav { padding-top: 6px; }
+            .mobile-bottom-link { min-height: 50px; }
+            .mobile-bottom-publish {
+                min-height: 54px;
+                min-width: 54px;
+                width: 54px;
+                margin-inline: auto;
+                border-radius: 18px;
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body
+    x-data="siteShell({{ request.user.is_authenticated|yesno:'true,false' }})"
+    x-init="init()"
+    x-on:marketplace-authenticated.window="setAuthenticated(true)"
+    x-on:marketplace-logged-out.window="setAuthenticated(false)"
+    class="min-h-screen page-bg antialiased"
+    data-authenticated="{% if request.user.is_authenticated %}true{% else %}false{% endif %}"
+>
+
+<!-- ============================ HEADER ============================ -->
+<header class="sticky top-0 z-40 border-b border-slate-200/70 glass">
+    <div class="mx-auto flex min-h-[66px] max-w-7xl items-center justify-between gap-3 px-3 py-2.5 sm:min-h-[72px] sm:px-6 sm:py-3 lg:px-8">
+
+        <a href="{% url 'marketplace:home' %}"
+           class="group inline-flex shrink-0 items-center"
+           aria-label="{{ platform_settings.site_name|default:'Marché Local' }} — Accueil">
+            <span class="flex h-11 shrink-0 items-center justify-center overflow-hidden rounded-[14px] border border-slate-200/80 bg-white px-2 shadow-sm transition duration-300 group-hover:-translate-y-0.5 group-hover:shadow-md sm:h-12 sm:rounded-2xl sm:px-3 lg:h-14 lg:px-3.5">
+                <img src="{% static 'logo.png' %}"
+                     alt="{{ platform_settings.site_name|default:'Marché Local' }}"
+                     width="230" height="56"
+                     fetchpriority="high" decoding="async"
+                     class="h-full w-auto max-w-[140px] object-contain sm:max-w-[180px] lg:max-w-[230px]">
+            </span>
+        </a>
+
+        <nav class="hidden items-center gap-1 lg:flex" aria-label="Navigation principale">
+            <a href="{% url 'marketplace:home' %}" class="rounded-xl px-3.5 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950">Accueil</a>
+            <a href="{% url 'marketplace:listing_list' %}" class="rounded-xl px-3.5 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950">Annonces</a>
+            <span id="headerNavAccountSlot" class="contents">
+                {% if request.user.is_authenticated %}
+                    <a href="{% url 'marketplace:my_listings' %}" class="rounded-xl px-3.5 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950">Mes annonces</a>
+                    <a href="{% url 'marketplace:favorites' %}" class="rounded-xl px-3.5 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950">Favoris</a>
+                    <a href="{% url 'marketplace:notifications' %}" class="rounded-xl px-3.5 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950">
+                        Notifications
+                        <span id="notificationBadge">
+                            {% if unread_notifications %}
+                                <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-amber-400 px-1.5 py-0.5 text-[10px] font-black text-slate-950">{{ unread_notifications }}</span>
+                            {% endif %}
+                        </span>
+                    </a>
+                {% endif %}
+            </span>
+        </nav>
+
+        <div id="authHeaderSlot" class="flex min-w-0 items-center gap-1.5 sm:gap-2">
+            {% if request.user.is_authenticated %}
+                <div class="hidden items-center gap-2 sm:flex">
+                    <a href="{% url 'marketplace:profile' request.user.username %}" class="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-2.5 py-1.5 shadow-sm hover:shadow-md">
+                        <span class="grid h-9 w-9 place-items-center overflow-hidden rounded-xl bg-slate-900 text-xs font-black text-white">
+                            {% if request.user.avatar %}
+                                <img src="{{ request.user.avatar.url }}" alt="" class="h-full w-full object-cover">
+                            {% else %}
+                                {{ request.user.public_name|slice:':1'|upper }}
+                            {% endif %}
+                        </span>
+                        <span class="max-w-28 truncate text-xs font-black text-slate-800">{{ request.user.public_name }}</span>
+                    </a>
+                    <form method="post" action="{% url 'marketplace:logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="grid h-10 w-10 place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-950" title="Se déconnecter" aria-label="Se déconnecter">
+                            <i data-lucide="log-out" class="h-4 w-4" aria-hidden="true"></i>
+                        </button>
+                    </form>
+                </div>
+            {% else %}
+                <button type="button"
+                        data-auth-fallback
+                        @click="$dispatch('open-auth',{mode:'login'})"
+                        x-show="!authenticated"
+                        x-cloak
+                        class="hidden rounded-xl px-3.5 py-2 text-sm font-bold text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-100 hover:text-slate-950 sm:block">
+                    Connexion
+                </button>
+            {% endif %}
+
+            <a href="{% url 'marketplace:create_listing' %}"
+               @click="if(!authenticated){$event.preventDefault();$dispatch('open-auth',{mode:'login',reason:'post'})}"
+               class="publish-button inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-slate-800">
+                <i data-lucide="plus" class="h-4 w-4" aria-hidden="true"></i><span>Publier</span>
+            </a>
+
+            <button type="button"
+                    @click="$dispatch('toggle-menu')"
+                    aria-label="Ouvrir le menu"
+                    class="grid h-11 w-11 place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50 lg:hidden">
+                <i data-lucide="menu" class="h-5 w-5" aria-hidden="true"></i>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- ============================ MOBILE DRAWER ============================ -->
+<div
+    x-data="{open:false}"
+    x-on:toggle-menu.window="open = !open"
+    x-on:keydown.escape.window="open = false"
+    x-effect="document.body.classList.toggle('modal-open', open)"
+    x-cloak
+    class="relative z-50 lg:hidden"
+>
+    <!-- Backdrop -->
+    <div
+        x-show="open"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-slate-950/50 backdrop-blur-[6px]"
+        @click="open=false"
+        aria-hidden="true"
+    ></div>
+
+    <!-- Panel -->
+    <aside
+        x-show="open"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="translate-x-full"
+        x-transition:enter-end="translate-x-0"
+        x-transition:leave="transition ease-in duration-220"
+        x-transition:leave-start="translate-x-0"
+        x-transition:leave-end="translate-x-full"
+        class="mobile-drawer-panel fixed right-0 top-0 flex h-[100dvh] w-[min(92vw,420px)] flex-col overflow-y-auto bg-white shadow-[-30px_0_80px_rgba(15,23,42,.22)]"
+        @click.stop
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu de navigation"
+    >
+
+        <!-- ─── Header: brand + close ─── -->
+        <div class="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-slate-100 bg-white/95 px-4 py-3.5 backdrop-blur sm:px-5">
+            <a
+                href="{% url 'marketplace:home' %}"
+                @click="open=false"
+                class="group flex min-w-0 items-center gap-3"
+                aria-label="Accueil {{ platform_settings.site_name|default:'Marché Local' }}"
+            >
+                <span class="flex h-11 items-center justify-center overflow-hidden rounded-[14px] border border-slate-200 bg-white px-2 shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md">
+                    <img src="{% static 'logo.png' %}"
+                         alt=""
+                         class="h-8 w-auto max-w-[130px] object-contain"
+                         loading="lazy" decoding="async">
+                </span>
+            </a>
+
+            <button
+                type="button"
+                @click="open=false"
+                class="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 hover:text-slate-950 active:scale-95"
+                aria-label="Fermer le menu"
+            >
+                <i data-lucide="x" class="h-5 w-5" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <!-- ─── Scrollable body ─── -->
+        <div class="flex flex-1 flex-col px-4 pb-6 pt-5 sm:px-5">
+
+            <!-- Account card -->
+            {% if request.user.is_authenticated %}
+                <div class="mobile-menu-card-glow overflow-hidden rounded-[24px] bg-slate-950 p-4 text-white shadow-xl shadow-slate-950/15">
+                    <div class="relative z-10 flex items-center gap-3">
+                        <span class="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white/10 text-sm font-black ring-1 ring-white/15">
+                            {% if request.user.avatar %}
+                                <img src="{{ request.user.avatar.url }}" class="h-full w-full object-cover" alt="">
+                            {% else %}
+                                {{ request.user.public_name|slice:':1'|upper }}
+                            {% endif %}
+                        </span>
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate text-sm font-black">{{ request.user.public_name }}</p>
+                            <p class="mt-0.5 truncate text-[10.5px] font-semibold text-slate-400">@{{ request.user.username }}</p>
+                        </div>
+                    </div>
+
+                    <div class="relative z-10 mt-4 grid grid-cols-2 gap-2">
+                        <a
+                            @click="open=false"
+                            href="{% url 'marketplace:profile' request.user.username %}"
+                            class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white/10 px-3 text-xs font-black transition hover:bg-white/20"
+                        >
+                            <i data-lucide="user-round" class="h-4 w-4" aria-hidden="true"></i>
+                            Mon profil
+                        </a>
+                        <form
+                            method="post"
+                            action="{% url 'marketplace:logout' %}"
+                            hx-post="{% url 'marketplace:logout' %}"
+                            hx-target="#mobileAuthSlot"
+                            hx-swap="innerHTML"
+                            class="contents"
+                        >
+                            {% csrf_token %}
+                            <button
+                                type="submit"
+                                class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white/10 px-3 text-xs font-black transition hover:bg-white/20"
+                            >
+                                <i data-lucide="log-out" class="h-4 w-4" aria-hidden="true"></i>
+                                Déconnexion
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <div id="mobileAuthSlot" class="mobile-menu-card-glow overflow-hidden rounded-[24px] bg-slate-950 p-4 text-white shadow-xl shadow-slate-950/15">
+                    <button
+                        type="button"
+                        @click="open=false;$dispatch('open-auth',{mode:'login'})"
+                        class="relative z-10 flex w-full items-center justify-between gap-3 text-left"
+                    >
+                        <span class="min-w-0">
+                            <span class="block text-sm font-black">Connexion / inscription</span>
+                            <span class="mt-1 block text-[10.5px] leading-5 text-slate-400">Publier, gérer vos annonces et retrouver vos favoris.</span>
+                        </span>
+                        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10">
+                            <i data-lucide="arrow-right" class="h-4 w-4" aria-hidden="true"></i>
+                        </span>
+                    </button>
+                </div>
+            {% endif %}
+
+            <!-- ─── Section: Découvrir ─── -->
+            <div class="mt-6">
+                <p class="mnav-section-label">Découvrir</p>
+                <nav class="grid gap-1">
+                    <a @click="open=false" href="{% url 'marketplace:home' %}" class="mnav-link">
+                        <span class="mnav-icon"><i data-lucide="house" aria-hidden="true"></i></span>
+                        Accueil
+                        <span class="mnav-chevron"><i data-lucide="chevron-right" aria-hidden="true"></i></span>
+                    </a>
+
+                    <a @click="open=false" href="{% url 'marketplace:listing_list' %}" class="mnav-link">
+                        <span class="mnav-icon"><i data-lucide="search" aria-hidden="true"></i></span>
+                        Toutes les annonces
+                        <span class="mnav-chevron"><i data-lucide="chevron-right" aria-hidden="true"></i></span>
+                    </a>
+                </nav>
+            </div>
+
+            {% if request.user.is_authenticated %}
+                <!-- ─── Section: Mon espace ─── -->
+                <div class="mt-6">
+                    <p class="mnav-section-label">Mon espace</p>
+                    <nav class="grid gap-1">
+                        <a @click="open=false" href="{% url 'marketplace:my_listings' %}" class="mnav-link">
+                            <span class="mnav-icon"><i data-lucide="layout-grid" aria-hidden="true"></i></span>
+                            Mes annonces
+                            <span class="mnav-chevron"><i data-lucide="chevron-right" aria-hidden="true"></i></span>
+                        </a>
+
+                        <a @click="open=false" href="{% url 'marketplace:favorites' %}" class="mnav-link">
+                            <span class="mnav-icon"><i data-lucide="heart" aria-hidden="true"></i></span>
+                            Mes favoris
+                            <span class="mnav-chevron"><i data-lucide="chevron-right" aria-hidden="true"></i></span>
+                        </a>
+
+                        <a @click="open=false" href="{% url 'marketplace:notifications' %}" class="mnav-link">
+                            <span class="mnav-icon"><i data-lucide="bell" aria-hidden="true"></i></span>
+                            Notifications
+                            {% if unread_notifications %}
+                                <span class="mnav-badge">{{ unread_notifications }}</span>
+                            {% else %}
+                                <span class="mnav-chevron"><i data-lucide="chevron-right" aria-hidden="true"></i></span>
+                            {% endif %}
+                        </a>
+
+                        <a @click="open=false" href="{% url 'marketplace:profile' request.user.username %}" class="mnav-link">
+                            <span class="mnav-icon"><i data-lucide="user-round" aria-hidden="true"></i></span>
+                            Mon profil
+                            <span class="mnav-chevron"><i data-lucide="chevron-right" aria-hidden="true"></i></span>
+                        </a>
+                    </nav>
+                </div>
+            {% endif %}
+
+            <div class="mnav-divider"></div>
+
+            <!-- ─── CTA: publish ─── -->
+            <a
+                href="{% url 'marketplace:create_listing' %}"
+                @click="if(!{{ request.user.is_authenticated|yesno:'true,false' }}){$event.preventDefault();open=false;$dispatch('open-auth',{mode:'login',reason:'post'})}"
+                class="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 text-[13px] font-black text-white shadow-lg shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-slate-800 active:scale-[.98]"
+            >
+                <i data-lucide="plus" class="h-4 w-4" aria-hidden="true"></i>
+                Publier une annonce
+            </a>
+
+            <!-- ─── About card ─── -->
+            <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p class="flex items-center gap-1.5 text-[9.5px] font-black uppercase tracking-[.16em] text-amber-700">
+                    <i data-lucide="sparkles" class="h-3 w-3" aria-hidden="true"></i>
+                    {{ platform_settings.site_name|default:'Marché Local' }}
+                </p>
+                <p class="mt-2 text-[11.5px] leading-5 text-slate-500">
+                    Produits, logements, services, emplois, restaurants et annonces locales — sans panier, sans détour.
+                </p>
+                <p class="mt-3 flex items-center gap-1.5 text-[10.5px] font-bold text-slate-400">
+                    <i data-lucide="map-pin" class="h-3 w-3" aria-hidden="true"></i>
+                    Cameroun · 100% local
+                </p>
+            </div>
+
+        </div>
+    </aside>
+</div>
+
+<!-- ============================ MESSAGES ============================ -->
+{% if messages %}
+<div class="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+    <div class="grid gap-2">
+        {% for message in messages %}
+        <div x-data="{show:true}" x-show="show" x-transition class="flex items-start justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+            <span>{{ message }}</span>
+            <button @click="show=false" class="opacity-60 hover:opacity-100" aria-label="Fermer">
+                <i data-lucide="x" class="h-4 w-4" aria-hidden="true"></i>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<main>{% block content %}{% endblock %}</main>
+
+{% include 'marketplace/partials/footer.html' %}
+{% include 'marketplace/partials/auth_modal.html' %}
+
+<div id="toastStack" class="pointer-events-none fixed inset-x-4 bottom-24 z-[100] mx-auto grid max-w-sm gap-2 sm:inset-auto sm:right-6 sm:bottom-6 sm:mx-0"></div>
+
+<script>
+    function siteShell(initialAuthenticated=false){
+        return {
+            authenticated: Boolean(initialAuthenticated),
+            mobileMenuOpen: false,
+            init(){},
+            setAuthenticated(value){
+                this.authenticated=Boolean(value);
+                document.body.dataset.authenticated=this.authenticated?'true':'false';
+            }
+        };
+    }
+
+    function getCookie(name){
+        const match=document.cookie.match('(^|;)\\s*'+name+'=([^;]+)');
+        return match?decodeURIComponent(match[2]):'';
+    }
+
+    function showToast(message,type='info'){
+        const stack=document.getElementById('toastStack'); if(!stack)return;
+        const tone=type==='error'
+            ?'border-rose-200 bg-rose-50 text-rose-800'
+            :type==='success'
+                ?'border-emerald-200 bg-emerald-50 text-emerald-800'
+                :'border-slate-200 bg-white text-slate-800';
+        const item=document.createElement('div');
+        item.className=`pointer-events-auto rounded-2xl border px-4 py-3 text-sm font-bold shadow-xl ${tone}`;
+        item.textContent=message;
+        stack.appendChild(item);
+        requestAnimationFrame(()=>item.classList.add('opacity-100'));
+        setTimeout(()=>item.remove(),3600);
+    }
+
+    function shareLink(platform,url,title,endpoint){
+        const text=`${title} — ${url}`;
+        if(endpoint){
+            fetch(endpoint,{method:'POST',headers:{'X-CSRFToken':getCookie('csrftoken'),'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8','X-Requested-With':'XMLHttpRequest'},credentials:'same-origin',body:new URLSearchParams({platform})}).catch(()=>{});
+        }
+        if(platform==='whatsapp'){window.open(`https://wa.me/?text=${encodeURIComponent(text)}`,'_blank','noopener');return;}
+        if(platform==='facebook'){window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,'_blank','noopener,width=900,height=700');return;}
+        if(platform==='instagram'){copyToClipboard(url);window.open('https://www.instagram.com/','_blank','noopener');showToast('Lien copié. Collez-le dans Instagram.','success');return;}
+        if(navigator.share){navigator.share({title,text,url}).catch(()=>{});return;}
+        copyToClipboard(url).then(ok=>showToast(ok?'Lien copié.':'Impossible de copier le lien.',ok?'success':'error'));
+    }
+
+    async function copyToClipboard(text){
+        try{if(navigator.clipboard){await navigator.clipboard.writeText(text);return true;}}catch(e){}
+        const input=document.createElement('textarea');
+        input.value=text;
+        input.style.position='fixed';
+        input.style.opacity='0';
+        document.body.appendChild(input);
+        input.select();
+        let ok=false;
+        try{ok=document.execCommand('copy')}catch(e){}
+        input.remove();
+        return ok;
+    }
+
+    document.addEventListener('DOMContentLoaded',()=>{
+        if(window.lucide)lucide.createIcons();
+
+        const params=new URLSearchParams(window.location.search);
+        if(params.get('auth')==='required' && document.body.dataset.authenticated==='false'){
+            setTimeout(()=>window.dispatchEvent(new CustomEvent('open-auth',{detail:{mode:'login'}})),120);
+        }
+
+        // Fallback for browsers/extensions that block Alpine: critical UI remains usable.
+        setTimeout(()=>{
+            if(window.Alpine)return;
+            document.querySelectorAll('[data-auth-fallback]').forEach(btn=>{
+                if(btn.dataset.bound==='true')return;
+                btn.dataset.bound='true';
+                btn.addEventListener('click',()=>{
+                    const modal=document.getElementById('authModalFallback');
+                    if(modal){modal.classList.remove('hidden');modal.setAttribute('aria-hidden','false');document.body.classList.add('modal-open');}
+                    window.dispatchEvent(new CustomEvent('open-auth',{detail:{mode:'login'}}));
+                });
+            });
+        },500);
+    });
+
+    document.body.addEventListener('htmx:afterSwap',()=>{if(window.lucide)lucide.createIcons();});
+    document.body.addEventListener('htmx:afterSettle',()=>{if(window.lucide)lucide.createIcons();});
+    document.body.addEventListener('htmx:configRequest',(event)=>{event.detail.headers['X-CSRFToken']=getCookie('csrftoken');});
+    document.body.addEventListener('htmx:responseError',(event)=>{
+        const status=event.detail.xhr?.status;
+        if(status===401){window.dispatchEvent(new CustomEvent('open-auth',{detail:{mode:'login'}}));return;}
+        if(status!==400)showToast('Une erreur serveur est survenue.','error');
+    });
+    document.body.addEventListener('open-auth',event=>{if(event.detail?.reason){document.body.dataset.authReason=event.detail.reason;}});
+    document.body.addEventListener('marketplace-open-auth',()=>window.dispatchEvent(new CustomEvent('open-auth',{detail:{mode:'login'}})));
+    document.body.addEventListener('marketplace-authenticated',()=>{
+        document.body.dataset.authenticated='true';
+        window.dispatchEvent(new CustomEvent('auth-success'));
+        const pending=document.querySelector('[data-pending-post-form="true"]');
+        if(pending){
+            pending.dataset.pendingPostForm='false';
+            setTimeout(()=>HTMLFormElement.prototype.submit.call(pending),120);
+            return;
+        }
+        if(document.body.dataset.authReason==='post'){
+            document.body.dataset.authReason='';
+            setTimeout(()=>{window.location.href="{% url 'marketplace:create_listing' %}";},180);
+        }
+    });
+    document.body.addEventListener('notifications-updated',(event)=>{
+        const slot=document.getElementById('notificationBadge');
+        if(!slot)return;
+        const count=event.detail?.unread ?? 0;
+        slot.innerHTML=count?`<span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-amber-400 px-1.5 py-0.5 text-[10px] font-black text-slate-950">${count}</span>`:'';
+    });
+    document.body.addEventListener('marketplace-logged-out',()=>{document.body.dataset.authenticated='false';window.location.reload();});
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

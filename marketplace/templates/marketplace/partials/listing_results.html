@@ -1,0 +1,14 @@
+{% if page_obj.object_list %}
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    {% for listing in page_obj.object_list %}{% include 'marketplace/partials/listing_card.html' %}{% endfor %}
+</div>
+<div class="mt-7 flex flex-wrap items-center justify-between gap-3">
+    <p class="text-xs font-semibold text-slate-500">Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }} · {{ page_obj.paginator.count }} annonce{{ page_obj.paginator.count|pluralize }}</p>
+    <div class="flex items-center gap-2">
+        {% if page_obj.has_previous %}<a hx-get="?{{ querystring }}{% if querystring %}&{% endif %}page={{ page_obj.previous_page_number }}" hx-target="#listingResults" hx-swap="innerHTML" hx-push-url="true" href="?page={{ page_obj.previous_page_number }}" class="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"><i data-lucide="chevron-left" class="h-4 w-4"></i></a>{% endif %}
+        {% if page_obj.has_next %}<a hx-get="?{{ querystring }}{% if querystring %}&{% endif %}page={{ page_obj.next_page_number }}" hx-target="#listingResults" hx-swap="innerHTML" hx-push-url="true" href="?page={{ page_obj.next_page_number }}" class="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"><i data-lucide="chevron-right" class="h-4 w-4"></i></a>{% endif %}
+    </div>
+</div>
+{% else %}
+<div class="rounded-[28px] border border-dashed border-slate-300 bg-white px-6 py-16 text-center"><div class="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-slate-100 text-slate-500"><i data-lucide="search-x" class="h-7 w-7"></i></div><h3 class="mt-4 font-display text-xl font-black">Aucune annonce trouvée.</h3><p class="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">Essayez une autre recherche ou élargissez la ville et la catégorie.</p><a href="{% url 'marketplace:listing_list' %}" class="mt-5 inline-flex rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-black text-white">Réinitialiser</a></div>
+{% endif %}

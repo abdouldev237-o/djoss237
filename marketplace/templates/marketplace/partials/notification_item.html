@@ -1,0 +1,19 @@
+<article id="notification-{{ notification.pk }}" class="rounded-[22px] border {% if notification.is_read %}border-slate-200 bg-white{% else %}border-amber-200 bg-amber-50/60{% endif %} p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <div class="flex items-start justify-between gap-4">
+        <div class="flex min-w-0 gap-3">
+            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl {% if notification.is_read %}bg-slate-100 text-slate-500{% else %}bg-white text-amber-700 ring-1 ring-amber-200{% endif %}"><i data-lucide="{% if notification.kind == 'expired' %}calendar-x{% elif notification.kind == 'renewal' %}bell-ring{% else %}info{% endif %}" class="h-5 w-5"></i></span>
+            <div class="min-w-0">
+                <p class="text-[10px] font-black uppercase tracking-[.13em] text-slate-400">{{ notification.get_kind_display }} · {{ notification.created_at|date:'d/m/Y H:i' }}</p>
+                <h2 class="mt-1 font-display text-base font-black text-slate-950">{{ notification.title }}</h2>
+                <p class="mt-2 text-sm leading-6 text-slate-600">{{ notification.message }}</p>
+                {% if notification.action_url %}<a href="{{ notification.action_url }}" class="mt-3 inline-flex items-center gap-1 text-xs font-black text-slate-950 underline underline-offset-2">Ouvrir <i data-lucide="arrow-up-right" class="h-3.5 w-3.5"></i></a>{% endif %}
+            </div>
+        </div>
+        {% if not notification.is_read %}
+            <form method="post" action="{% url 'marketplace:mark_notification_read' notification.pk %}" hx-post="{% url 'marketplace:mark_notification_read' notification.pk %}" hx-target="#notification-{{ notification.pk }}" hx-swap="outerHTML" class="shrink-0">
+                {% csrf_token %}
+                <button type="submit" class="rounded-xl bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-0.5">Lu</button>
+            </form>
+        {% endif %}
+    </div>
+</article>

@@ -1,0 +1,10 @@
+<div id="headerNavAccountSlot" hx-swap-oob="innerHTML"></div>
+<div id="authHeaderSlot" hx-swap-oob="innerHTML">
+    <button type="button" @click="$dispatch('open-auth',{mode:'login'})" class="hidden rounded-xl px-3.5 py-2 text-sm font-bold text-slate-700 hover:bg-slate-100 sm:block">Connexion</button>
+</div>
+<div id="mobileAuthSlot" hx-swap-oob="innerHTML">
+    <button type="button" @click="$dispatch('open-auth',{mode:'login'})" class="mb-3 flex w-full items-center justify-between rounded-3xl bg-slate-950 px-4 py-4 text-left text-white">
+        <span><span class="block text-sm font-black">Connexion / inscription</span><span class="mt-1 block text-xs text-slate-400">Publier et gérer vos annonces</span></span>
+        <i data-lucide="arrow-right" class="h-4 w-4"></i>
+    </button>
+</div>

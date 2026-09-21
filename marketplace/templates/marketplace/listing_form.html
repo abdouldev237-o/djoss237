@@ -1,0 +1,340 @@
+{% extends 'base.html' %}
+{% load l10n %}
+{% block title %}{% if editing %}Modifier l’annonce{% else %}Publier une annonce{% endif %} — {{ platform_settings.site_name|default:'Marché Local' }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .publish-shell{max-width:1180px;margin:0 auto}
+    .publish-card{box-shadow:0 24px 70px rgba(15,23,42,.08)}
+    .form-label{font-size:.72rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#64748b}
+    .publish-input:focus{box-shadow:0 0 0 4px rgba(15,23,42,.05)}
+    .field-error-ring{border-color:#fda4af!important;background:#fff7f8!important;box-shadow:0 0 0 4px rgba(244,63,94,.06)}
+    .form-error-panel{animation:formShake .3s ease-out}
+    @keyframes formShake{0%{transform:translateX(0)}25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}100%{transform:translateX(0)}} .htmx-indicator{display:none}.htmx-request .htmx-indicator,.htmx-request.htmx-indicator{display:block}
+    @media (max-width:640px){.publish-shell{width:100%}.publish-card{border-radius:22px}.publish-input{font-size:16px!important}}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="px-4 py-7 sm:px-6 lg:px-8 lg:py-10" x-data="listingPublisher()" x-init="{% if auth_required and not request.user.is_authenticated %}setTimeout(()=>$dispatch('open-auth',{mode:'login',reason:'post'}),120){% endif %}">
+    <div class="publish-shell">
+        <div class="grid gap-6 lg:grid-cols-[.72fr_1.28fr]">
+            <aside class="relative overflow-hidden rounded-[30px] bg-slate-950 p-7 text-white shadow-2xl lg:sticky lg:top-24 lg:self-start">
+                <div class="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-amber-300/15 blur-3xl"></div>
+                <div class="absolute -bottom-28 -left-16 h-56 w-56 rounded-full bg-sky-400/10 blur-3xl"></div>
+                <div class="relative">
+                    <span class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] font-black uppercase tracking-[.16em] text-amber-300">
+                        <span class="h-1.5 w-1.5 rounded-full bg-amber-300"></span>
+                        Publication gratuite
+                    </span>
+                    <h1 class="mt-5 font-display text-4xl font-black leading-[.98] tracking-[-.05em] sm:text-5xl">
+                        Votre annonce,<br><span class="text-amber-300">votre rythme.</span>
+                    </h1>
+                    <p class="mt-5 text-sm leading-7 text-slate-300">Vente, location, service, mission, restaurant, logement ou petite activité : publiez simplement, puis laissez les acheteurs vous contacter directement.</p>
+
+                    <div class="mt-7 grid gap-3">
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                            <div class="flex items-start gap-3">
+                                <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10"><i data-lucide="calendar-range" class="h-4.5 w-4.5"></i></span>
+                                <div><strong class="block text-sm">1 à 30 jours</strong><span class="mt-1 block text-xs leading-5 text-slate-400">Choisissez une durée ou une date précise. Jamais plus d’un mois.</span></div>
+                            </div>
+                        </div>
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                            <div class="flex items-start gap-3">
+                                <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10"><i data-lucide="images" class="h-4.5 w-4.5"></i></span>
+                                <div><strong class="block text-sm">Jusqu’à 10 photos</strong><span class="mt-1 block text-xs leading-5 text-slate-400">Les photos aident à comprendre immédiatement ce que vous proposez.</span></div>
+                            </div>
+                        </div>
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                            <div class="flex items-start gap-3">
+                                <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10"><i data-lucide="shield-check" class="h-4.5 w-4.5"></i></span>
+                                <div><strong class="block text-sm">Contact direct</strong><span class="mt-1 block text-xs leading-5 text-slate-400">WhatsApp et téléphone depuis l’annonce. Aucun panier.</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="publish-card overflow-hidden rounded-[30px] border border-slate-200 bg-white">
+                <div class="border-b border-slate-100 px-5 py-5 sm:px-7">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <p class="form-label text-amber-600">{% if editing %}Modification{% else %}Nouvelle publication{% endif %}</p>
+                            <h2 class="mt-1 font-display text-2xl font-black tracking-tight text-slate-950">{% if editing %}Améliorez votre annonce{% else %}Décrivez ce que vous proposez{% endif %}</h2>
+                            <p class="mt-2 text-sm leading-6 text-slate-500">{% if editing %}Modifiez les informations, le prix, la localisation ou la durée de publication.{% else %}Une publication claire permet aux visiteurs de comprendre plus vite, même sur mobile.{% endif %}</p>
+                        </div>
+                        <div class="hidden h-11 w-11 shrink-0 place-items-center rounded-2xl bg-slate-950 text-white sm:grid"><i data-lucide="megaphone" class="h-5 w-5"></i></div>
+                    </div>
+                </div>
+
+                <div class="px-5 py-5 sm:px-7">
+                    {% if blocked %}
+                        <div class="rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm font-semibold text-rose-700">Votre compte est temporairement bloqué. Vous ne pouvez pas publier.</div>
+                    {% else %}
+                        {% if auth_required %}
+                        <div class="mb-5 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900">
+                            <i data-lucide="lock-keyhole" class="mt-0.5 h-4 w-4 shrink-0"></i>
+                            <span>La publication nécessite un compte. Vous pouvez vous connecter ou créer votre compte depuis la fenêtre de connexion.</span>
+                        </div>
+                        {% endif %}
+
+                        {% if form.errors %}
+<div
+    class="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm"
+    role="alert"
+>
+    <div class="flex items-start gap-3">
+
+        <span
+            class="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-rose-100 text-rose-700"
+        >
+            <i data-lucide="circle-alert" class="h-4 w-4"></i>
+        </span>
+
+        <div class="min-w-0">
+
+            <p class="font-black text-rose-800">
+                Vérifiez les informations de votre annonce.
+            </p>
+
+            {% if form.non_field_errors %}
+                <div class="mt-2 space-y-1 text-xs font-semibold text-rose-700">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+</div>
+{% endif %}
+
+                        <form method="post" action="{% if editing %}{% url 'marketplace:edit_listing' listing.slug %}{% else %}{% url 'marketplace:create_listing' %}{% endif %}" enctype="multipart/form-data" class="space-y-6" @submit="guardSubmit($event)" data-pending-post-form="false">
+                            {% csrf_token %}
+
+                            <div class="grid gap-5 sm:grid-cols-2">
+                                <label class="block">
+                                    <span class="form-label mb-2 block">Catégorie</span>
+                                    {{ form.category }}
+                                    {% for error in form.category.errors %}<small class="mt-1 block text-xs font-semibold text-rose-600">{{ error }}</small>{% endfor %}
+                                </label>
+                                <label class="block">
+    <span class="form-label mb-2 block">Ville</span>
+    {{ form.city }}
+    {% for error in form.city.errors %}<small class="mt-1 block text-xs font-bold text-rose-600">{{ error }}</small>{% endfor %}
+</label>
+                                <label class="block">
+                                    <span class="form-label mb-2 block">Quartier</span>
+                                    <div class="relative">
+                                        <select id="id_neighborhood" name="neighborhood" class="publish-input w-full min-w-0 appearance-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 pr-10 text-base font-semibold text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white sm:text-sm">
+                                            <option value="">Choisir un quartier</option>
+                                            {% for n in form.fields.neighborhood.queryset %}
+                                                <option value="{{ n.slug }}" {% if form.neighborhood.value|stringformat:'s' == n.slug %}selected{% endif %}>{{ n.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <span id="neighborhoodIndicator" class="htmx-indicator pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                            <i data-lucide="loader-circle" class="h-4 w-4 animate-spin"></i>
+                                        </span>
+                                    </div>
+                                    {% for error in form.neighborhood.errors %}<small class="mt-1 block text-xs font-semibold text-rose-600">{{ error }}</small>{% endfor %}
+                                </label>
+                                <label class="block">
+                                    <span class="form-label mb-2 block">État</span>
+                                    {{ form.condition }}
+                                    {% for error in form.condition.errors %}<small class="mt-1 block text-xs font-bold text-rose-600">{{ error }}</small>{% endfor %}
+                                </label>
+                            </div>
+
+                            <label class="block">
+                                <span class="form-label mb-2 block">Titre de l’annonce</span>
+                                {{ form.title }}
+                                {% for error in form.title.errors %}<small class="mt-1 block text-xs font-semibold text-rose-600">{{ error }}</small>{% endfor %}
+                            </label>
+
+                            <div class="grid gap-5 sm:grid-cols-2">
+                                <label class="block">
+                                    <span class="form-label mb-2 block">Prix</span>
+                                    {{ form.price }}
+                                    {% for error in form.price.errors %}<small class="mt-1 block text-xs font-semibold text-rose-600">{{ error }}</small>{% endfor %}
+                                </label>
+                                <label class="block">
+                                    <span class="form-label mb-2 block">Type de prix</span>
+                                    {{ form.price_type }}
+                                    {% for error in form.price_type.errors %}<small class="mt-1 block text-xs font-bold text-rose-600">{{ error }}</small>{% endfor %}
+                                </label>
+                            </div>
+
+                            <label class="block">
+                                <span class="form-label mb-2 block">Description</span>
+                                {{ form.description }}
+                                {% for error in form.description.errors %}<small class="mt-1 block text-xs font-semibold text-rose-600">{{ error }}</small>{% endfor %}
+                                <div class="mt-1 text-right text-[11px] font-semibold text-slate-400"><span id="descriptionCount">0</span> / 5000</div>
+                            </label>
+
+                            <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
+                                <div class="flex items-start gap-3">
+                                    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-slate-700 shadow-sm"><i data-lucide="calendar-clock" class="h-4.5 w-4.5"></i></span>
+                                    <div class="min-w-0">
+                                        <h3 class="font-display text-sm font-black text-slate-950">Quand cette annonce doit-elle expirer ?</h3>
+                                        <p class="mt-1 text-xs leading-5 text-slate-500">Utile pour une location, un logement disponible jusqu’à une date précise, une prestation temporaire ou une offre limitée.</p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 grid gap-2 rounded-2xl bg-white p-1 sm:grid-cols-2">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="duration_mode" value="days" class="peer sr-only" x-model="mode" {% if form.duration_mode.value|default:"days" == "days" %}checked{% endif %}>
+                                        <span class="block rounded-xl px-3 py-3 text-center text-xs font-black text-slate-500 transition peer-checked:bg-slate-950 peer-checked:text-white">Nombre de jours</span>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="duration_mode" value="date" class="peer sr-only" x-model="mode" {% if form.duration_mode.value == "date" %}checked{% endif %}>
+                                        <span class="block rounded-xl px-3 py-3 text-center text-xs font-black text-slate-500 transition peer-checked:bg-slate-950 peer-checked:text-white">Date précise</span>
+                                    </label>
+                                    {% for error in form.duration_mode.errors %}<small class="mt-2 block text-xs font-bold text-rose-600">{{ error }}</small>{% endfor %}
+                                </div>
+
+                                <div class="mt-4" x-show="mode==='days'" x-transition.opacity>
+                                    <label class="block">
+                                        <span class="form-label mb-2 block">Durée</span>
+                                    </label>
+                                    <div class="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                                        <template x-for="d in quickDays" :key="d">
+                                            <button type="button" @click="days=d" :class="days===d?'bg-slate-950 text-white border-slate-950':'bg-white text-slate-700 border-slate-200'" class="min-h-11 rounded-xl border px-3 text-xs font-black transition hover:-translate-y-0.5"><span x-text="d"></span> j</button>
+                                        </template>
+                                    </div>
+                                    <input type="hidden" name="duration_days" :value="days" value="{{ form.duration_days.value|default:30 }}">
+                                    <p class="mt-2 text-[11px] font-semibold text-slate-500">Maximum autorisé : <strong class="text-slate-900">30 jours</strong>.</p>
+                                    {% for error in form.duration_days.errors %}<small class="mt-1 block text-xs font-semibold text-rose-600">{{ error }}</small>{% endfor %}
+                                </div>
+
+                                <div class="mt-4" x-show="mode==='date'" x-cloak x-transition.opacity>
+                                    <label class="block">
+                                        <span class="form-label mb-2 block">Date et heure d’expiration</span>
+                                        {{ form.expires_at_input }}
+                                        {% for error in form.expires_at_input.errors %}<small class="mt-1 block text-xs font-semibold text-rose-600">{{ error }}</small>{% endfor %}
+                                    </label>
+                                    <p class="mt-2 text-[11px] font-semibold text-slate-500">La date choisie doit se situer dans les <strong class="text-slate-900">30 prochains jours</strong>.</p>
+                                </div>
+
+                                <div class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-900">
+                                    <span class="inline-flex items-center gap-2"><i data-lucide="sparkles" class="h-3.5 w-3.5"></i><span x-text="mode==='days' ? `Votre annonce sera publiée pendant ${days} jour${days>1?'s':''}.` : 'Votre annonce suivra la date précise choisie.'"></span></span>
+                                </div>
+                            </div>
+
+                            {% if editing and listing.images.all %}
+                            <div class="mb-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                                <div class="mb-3 flex items-center justify-between gap-3"><span class="text-xs font-black text-slate-700">Photos actuelles</span><span class="text-[10px] font-bold text-slate-400">{{ listing.images.count }}/10</span></div>
+                                <div class="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                                    {% for image in listing.images.all %}<div class="aspect-square overflow-hidden rounded-xl bg-white ring-1 ring-slate-200"><img src="{{ image.image.url }}" alt="" class="h-full w-full object-cover"></div>{% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div>
+                                <div class="form-label mb-2 block">Photos</div>
+                                <label class="group flex cursor-pointer flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-5 py-9 text-center transition hover:border-slate-400 hover:bg-white">
+                                    <input id="id_images" name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple class="hidden">
+                                    <span class="grid h-14 w-14 place-items-center rounded-2xl bg-white text-slate-700 shadow-sm transition group-hover:-translate-y-1"><i data-lucide="images" class="h-6 w-6"></i></span>
+                                    <strong class="mt-4 text-sm font-black text-slate-900">{% if editing %}Ajouter des photos{% else %}Ajoutez jusqu’à 10 photos{% endif %}</strong>
+                                    <span class="mt-1 text-xs leading-5 text-slate-500">JPG, PNG ou WEBP · 5 Mo maximum par image</span>
+                                </label>
+                                <div id="imagePreview" class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-5"></div>
+                                {% for error in form.images.errors %}<small class="mt-1 block text-xs font-semibold text-rose-600">{{ error }}</small>{% endfor %}
+                            </div>
+
+                            <input type="hidden" name="website" value="">
+
+                            <div class="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                                <p class="max-w-xl text-xs leading-5 text-slate-400">En publiant, vous confirmez que votre annonce respecte les règles de la plateforme et que vous avez le droit de proposer ce contenu.</p>
+                                <button type="submit" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-slate-950/10 transition hover:-translate-y-0.5 hover:bg-slate-800">
+                                    <i data-lucide="{% if editing %}save{% else %}send{% endif %}" class="h-4 w-4"></i>
+                                    {% if editing %}Enregistrer les modifications{% else %}Publier l’annonce{% endif %}
+                                </button>
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+function listingPublisher(){
+    return {
+        mode:'{{ form.duration_mode.value|default:'days' }}',
+        days:Number('{{ form.duration_days.value|default:30 }}') || 30,
+        quickDays:[1,3,7,14,21,30],
+        guardSubmit(event){
+            if(!{{ request.user.is_authenticated|yesno:'true,false' }}){
+                event.preventDefault();
+                event.currentTarget.dataset.pendingPostForm='true';
+                window.dispatchEvent(new CustomEvent('open-auth',{detail:{mode:'login',reason:'post'}}));
+            }
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+    const description=document.getElementById('id_description');
+    const counter=document.getElementById('descriptionCount');
+    const input=document.getElementById('id_images');
+    const preview=document.getElementById('imagePreview');
+
+    if(description&&counter){
+        const update=()=>counter.textContent=description.value.length;
+        description.addEventListener('input',update);
+        update();
+    }
+
+    if(input&&preview){
+        input.addEventListener('change',()=>{
+            preview.innerHTML='';
+            [...input.files].slice(0,10).forEach(file=>{
+                if(!file.type.startsWith('image/')) return;
+                const box=document.createElement('div');
+                box.className='group relative overflow-hidden rounded-2xl bg-slate-100 aspect-square ring-1 ring-slate-200';
+                const img=document.createElement('img');
+                img.src=URL.createObjectURL(file);
+                img.alt='Aperçu';
+                img.className='h-full w-full object-cover transition duration-500 group-hover:scale-105';
+                img.onload=()=>URL.revokeObjectURL(img.src);
+                box.appendChild(img);
+                preview.appendChild(box);
+            });
+        });
+    }
+
+    if(window.lucide) lucide.createIcons();
+
+    // HTMX remains primary. This same-origin fallback keeps the city ->
+    // quartier flow working if a browser blocks the HTMX CDN.
+    const city=document.getElementById('id_city');
+    const neighborhood=document.getElementById('id_neighborhood');
+    if(city&&neighborhood){
+        city.addEventListener('change',async()=>{
+            if(window.htmx)return;
+            const indicator=document.getElementById('neighborhoodIndicator');
+            if(indicator)indicator.classList.remove('hidden');
+            neighborhood.disabled=true;
+            neighborhood.innerHTML='<option value="">Chargement des quartiers…</option>';
+            try{
+                const url=new URL('/htmx/quartiers/',window.location.origin);
+                url.searchParams.set('city',city.value);
+                const response=await fetch(url,{headers:{'X-Requested-With':'XMLHttpRequest','Accept':'text/html'},credentials:'same-origin'});
+                if(!response.ok)throw new Error('HTTP '+response.status);
+                neighborhood.innerHTML=await response.text();
+            }catch(error){
+                console.error('Quartier fallback:',error);
+                neighborhood.innerHTML='<option value="">Impossible de charger les quartiers</option>';
+            }finally{
+                neighborhood.disabled=false;
+                if(indicator)indicator.classList.add('hidden');
+                if(window.lucide)lucide.createIcons();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,8 @@
+<form hx-post="{% url 'marketplace:report_user' target_user.username %}" hx-target="#userReportBody" hx-swap="innerHTML" class="space-y-4">
+    {% csrf_token %}
+    <p class="text-sm leading-6 text-slate-500">Signaler le profil <strong class="text-slate-800">@{{ target_user.username }}</strong>.</p>
+    <select name="reason" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold"><option>Comportement inapproprié</option><option>Arnaque présumée</option><option>Faux profil</option><option>Spam</option><option>Autre</option></select>
+    <textarea name="message" rows="4" maxlength="2000" placeholder="Expliquez le problème…" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold outline-none focus:bg-white"></textarea>
+    <input name="reporter_phone" placeholder="Votre téléphone (facultatif)" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold">
+    <button class="w-full rounded-2xl bg-slate-950 px-5 py-3.5 text-sm font-black text-white">Envoyer le signalement</button>
+</form>

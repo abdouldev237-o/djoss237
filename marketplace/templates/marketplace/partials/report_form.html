@@ -1,0 +1,8 @@
+<form hx-post="{% url 'marketplace:report_listing' listing.slug %}" hx-target="#reportModalBody" hx-swap="innerHTML" class="space-y-4">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="rounded-2xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{{ form.non_field_errors|striptags }}</div>{% endif %}
+    <label class="block"><span class="mb-2 block text-xs font-black uppercase tracking-[.08em] text-slate-500">Motif</span>{{ form.reason }}</label>
+    <label class="block"><span class="mb-2 block text-xs font-black uppercase tracking-[.08em] text-slate-500">Détail</span>{{ form.message }}</label>
+    <label class="block"><span class="mb-2 block text-xs font-black uppercase tracking-[.08em] text-slate-500">Téléphone (facultatif)</span>{{ form.reporter_phone }}</label>
+    <button class="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3.5 text-sm font-black text-white">Envoyer le signalement <i data-lucide="flag" class="h-4 w-4"></i></button>
+</form>

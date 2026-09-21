@@ -1,0 +1,475 @@
+{% extends 'base.html' %}
+
+{% block title %}Marché Local — Trouvez. Vendez. Partagez.{% endblock %}
+
+{% block extra_head %}
+<style>
+    .home-shell{max-width:1440px;margin:0 auto}
+    .hero-no-scroll{overflow:hidden}
+    .hero-card-shadow{box-shadow:0 35px 90px rgba(2,6,23,.28)}
+    .category-card{transform:translateZ(0);transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease}
+    .category-card:hover{transform:translateY(-5px);box-shadow:0 20px 45px rgba(15,23,42,.09)}
+    .category-icon{transition:transform .3s ease}
+    .category-card:hover .category-icon{transform:rotate(-5deg) scale(1.06)}
+    .spotlight-progress{transform-origin:left center}
+    .safe-card{padding-bottom:max(1rem,env(safe-area-inset-bottom))}
+
+    /* Hero carousel: stable stacking for enter/leave */
+    .hero-slide{
+        position:absolute;
+        inset-inline:0;
+        top:.5rem;
+        margin-inline:auto;
+        max-width:510px;
+    }
+    .hero-slide.is-leaving{z-index:1}
+    .hero-slide.is-entering{z-index:2}
+
+    @media(prefers-reduced-motion:reduce){
+        .category-card,.category-icon,.spotlight-progress{transition:none!important}
+    }
+    @media(max-width:640px){
+        .hero-search-input{font-size:16px!important}
+        .home-section-pad{padding-top:3.5rem;padding-bottom:3.5rem}
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div
+    x-data="homeHero({{ hero_listings|length }})"
+    x-init="start()"
+    @mouseenter="pause()"
+    @mouseleave="resume()"
+    @focusin="pause()"
+    @focusout="if(!$el.contains($event.relatedTarget)){resume()}"
+    class="hero-no-scroll"
+>
+    <section class="relative isolate overflow-hidden bg-slate-950 text-white">
+        <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_82%_3%,rgba(245,158,11,.20),transparent_30%),radial-gradient(circle_at_10%_35%,rgba(59,130,246,.11),transparent_28%)]"></div>
+        <div class="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-slate-950 to-transparent"></div>
+
+        <div class="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_.96fr] lg:gap-14 lg:px-8 lg:py-20">
+            <!-- LEFT: copy + search -->
+            <div class="min-w-0 animate-fadeUp">
+                <div class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-2 text-[10px] font-black uppercase tracking-[.15em] text-amber-200 backdrop-blur">
+                    <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-300" aria-hidden="true"></span>
+                    Marché local · Cameroun
+                </div>
+
+                <h1 class="mt-5 max-w-3xl font-display text-[clamp(2.7rem,7vw,5.6rem)] font-black leading-[.94] tracking-[-.065em]">
+                    Trouvez.<br>
+                    <span class="text-amber-300">Vendez.</span><br>
+                    Partagez.
+                </h1>
+
+                <p class="mt-6 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
+                    Une plateforme simple pour les annonces locales : immobilier,
+                    véhicules, téléphones, services, emploi, restauration et bien plus.
+                    Pas de panier. Un contact direct.
+                </p>
+
+                <form role="search"
+                      action="{% url 'marketplace:listing_list' %}"
+                      method="get"
+                      class="mt-8 max-w-3xl rounded-[25px] border border-white/10 bg-white/5 p-2 shadow-2xl backdrop-blur-xl">
+                    <div class="grid gap-2 md:grid-cols-[minmax(0,1fr)_190px_170px_auto]">
+                        <label class="flex min-w-0 items-center gap-3 rounded-2xl bg-white px-4 text-slate-700">
+                            <i data-lucide="search" class="h-5 w-5 shrink-0 text-slate-400" aria-hidden="true"></i>
+                            <span class="sr-only">Rechercher une annonce</span>
+                            <input name="q"
+                                   placeholder="Ex. studio à Bonamoussadi, plombier…"
+                                   class="hero-search-input w-full min-w-0 border-0 bg-transparent py-3.5 text-sm font-semibold outline-none placeholder:text-slate-400">
+                        </label>
+                        <select name="category"
+                                aria-label="Catégorie"
+                                class="min-w-0 rounded-2xl border-0 bg-white px-4 py-3.5 text-sm font-bold text-slate-700 outline-none">
+                            <option value="">Toutes les catégories</option>
+                            {% for category in categories %}
+                                <option value="{{ category.slug }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <select name="city"
+                                aria-label="Ville"
+                                class="min-w-0 rounded-2xl border-0 bg-white px-4 py-3.5 text-sm font-bold text-slate-700 outline-none">
+                            <option value="">Toutes les villes</option>
+                            {% for city in cities %}<option value="{{ city.slug }}">{{ city.name }}</option>{% endfor %}
+                        </select>
+                        <button type="submit"
+                                class="inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-400 px-5 py-3.5 text-sm font-black text-slate-950 transition hover:-translate-y-0.5 hover:bg-amber-300">
+                            Rechercher
+                            <i data-lucide="arrow-right" class="h-4 w-4" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-3 text-[11px] font-semibold text-slate-400">
+                    Astuce : choisissez une catégorie et une ville pour affiner immédiatement votre recherche.
+                </div>
+
+                <div class="mt-6 flex flex-wrap gap-2 text-xs font-bold text-slate-300">
+                    <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">100% gratuit pour commencer</span>
+                    <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">Contact direct</span>
+                    <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">WhatsApp · Appel</span>
+                </div>
+            </div>
+
+            <!-- RIGHT: carousel -->
+            <div class="relative min-h-[430px] sm:min-h-[500px] lg:min-h-[560px]">
+                <div class="absolute -right-16 -top-14 h-56 w-56 rounded-full bg-amber-300/15 blur-3xl" aria-hidden="true"></div>
+                <div class="absolute -left-10 bottom-5 h-44 w-44 rounded-full bg-blue-500/10 blur-3xl" aria-hidden="true"></div>
+
+                {% if hero_listings %}
+                    <div
+                        role="region"
+                        aria-roledescription="carrousel"
+                        aria-label="Annonces en vedette"
+                        tabindex="0"
+                        @keydown.arrow-left.prevent="previous()"
+                        @keydown.arrow-right.prevent="next()"
+                        class="absolute inset-0 outline-none focus-visible:ring-2 focus-visible:ring-amber-300/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded-[32px]"
+                    >
+                        {% for listing in hero_listings %}
+                        <div
+                            x-show="current === {{ forloop.counter0 }}"
+                            x-cloak
+                            x-transition:enter="transition duration-500 ease-out"
+                            x-transition:enter-start="opacity-0 translate-x-8 scale-[.98]"
+                            x-transition:enter-end="opacity-100 translate-x-0 scale-100"
+                            x-transition:leave="transition duration-300 ease-in"
+                            x-transition:leave-start="opacity-100"
+                            x-transition:leave-end="opacity-0 -translate-x-4"
+                            class="hero-slide"
+                            :class="current === {{ forloop.counter0 }} ? 'is-entering' : 'is-leaving'"
+                            role="group"
+                            aria-roledescription="slide"
+                            aria-label="Annonce {{ forloop.counter }} sur {{ hero_listings|length }}"
+                        >
+                            <a href="{% url 'marketplace:listing_detail' listing.slug %}"
+                               class="group block overflow-hidden rounded-[32px] border border-white/10 bg-white p-3 text-slate-950 hero-card-shadow">
+                                <div class="relative aspect-[4/4.35] overflow-hidden rounded-[25px] bg-slate-100">
+                                    {% with image=listing.images.first %}
+                                        {% if image %}
+                                            <img src="{{ image.image.url }}"
+                                                 alt="{{ listing.title|escape }}"
+                                                 {% if forloop.parentloop.counter0 == 0 %}
+                                                     fetchpriority="high" decoding="async"
+                                                 {% else %}
+                                                     loading="lazy" decoding="async"
+                                                 {% endif %}
+                                                 class="h-full w-full object-cover transition duration-700 group-hover:scale-105">
+                                        {% else %}
+                                            <div class="grid h-full place-items-center text-slate-300">
+                                                <i data-lucide="image" class="h-12 w-12" aria-hidden="true"></i>
+                                            </div>
+                                        {% endif %}
+                                    {% endwith %}
+                                    <div class="absolute inset-x-0 top-0 flex items-start justify-between p-4">
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-950/85 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-white backdrop-blur">
+                                            {% if listing.has_active_boost %}Top{% else %}À découvrir{% endif %}
+                                            <i data-lucide="sparkles" class="h-3 w-3 text-amber-300" aria-hidden="true"></i>
+                                        </span>
+                                        <span class="rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-black text-slate-800 backdrop-blur">
+                                            {{ listing.city.name }}
+                                        </span>
+                                    </div>
+                                    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent p-5 pt-24 text-white">
+                                        <div class="text-[10px] font-black uppercase tracking-[.15em] text-amber-300">{{ listing.category.name }}</div>
+                                        <div class="mt-1 line-clamp-2 font-display text-2xl font-black leading-tight">{{ listing.title }}</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-end justify-between gap-4 px-2 py-4">
+                                    <div class="min-w-0">
+                                        <div class="truncate text-xs font-bold text-slate-400">
+                                            {{ listing.city.name }}{% if listing.neighborhood %} · {{ listing.neighborhood.name }}{% endif %}
+                                        </div>
+                                        <div class="mt-1 text-lg font-black">
+                                            {% if listing.price is not None %}{{ listing.price|floatformat:0 }} {{ listing.currency }}{% elif listing.price_type == 'free' %}Gratuit{% else %}Prix sur demande{% endif %}
+                                        </div>
+                                    </div>
+                                    <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-slate-950 text-white transition group-hover:-rotate-6 group-hover:scale-105">
+                                        <i data-lucide="arrow-up-right" class="h-5 w-5" aria-hidden="true"></i>
+                                    </span>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="absolute inset-x-0 bottom-0 flex flex-col items-center gap-3">
+                        <div class="flex items-center gap-2">
+                            <button type="button" @click="previous()"
+                                    class="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/5 text-white backdrop-blur transition hover:bg-white/10"
+                                    aria-label="Annonce précédente">
+                                <i data-lucide="chevron-left" class="h-4 w-4" aria-hidden="true"></i>
+                            </button>
+                            <div class="flex items-center gap-1.5" role="tablist" aria-label="Sélection de l'annonce">
+                                {% for listing in hero_listings %}
+                                <button type="button"
+                                        role="tab"
+                                        @click="go({{ forloop.counter0 }})"
+                                        :aria-selected="current === {{ forloop.counter0 }}"
+                                        :class="current === {{ forloop.counter0 }} ? 'w-8 bg-amber-300' : 'w-2 bg-white/25'"
+                                        class="h-1.5 rounded-full transition-all duration-300"
+                                        aria-label="Voir l'annonce {{ forloop.counter }}"></button>
+                                {% endfor %}
+                            </div>
+                            <button type="button" @click="next()"
+                                    class="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/5 text-white backdrop-blur transition hover:bg-white/10"
+                                    aria-label="Annonce suivante">
+                                <i data-lucide="chevron-right" class="h-4 w-4" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <div class="h-0.5 w-40 overflow-hidden rounded-full bg-white/10">
+                            <div class="spotlight-progress h-full bg-amber-300 transition-none"
+                                 :style="`width:${progress}%`"></div>
+                        </div>
+                        <span class="sr-only" aria-live="polite">
+                            Annonce <span x-text="current + 1"></span> sur {{ hero_listings|length }}
+                        </span>
+                    </div>
+                {% else %}
+                    <div class="flex h-full items-center justify-center rounded-[32px] border border-white/10 bg-white/5 p-8 text-center backdrop-blur-xl">
+                        <div>
+                            <div class="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-white/10 text-amber-300">
+                                <i data-lucide="store" class="h-7 w-7" aria-hidden="true"></i>
+                            </div>
+                            <h2 class="mt-5 font-display text-2xl font-black">Le marché commence ici.</h2>
+                            <p class="mt-2 max-w-sm text-sm leading-6 text-slate-300">
+                                Publiez gratuitement votre annonce pour faire apparaître votre activité,
+                                votre bien, votre produit ou votre service.
+                            </p>
+                            <a href="{% url 'marketplace:create_listing' %}"
+                               class="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-black text-slate-950 transition hover:-translate-y-0.5">
+                                <i data-lucide="plus" class="h-4 w-4" aria-hidden="true"></i> Publier
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Categories -->
+<section class="home-section-pad bg-white">
+    <div class="home-shell px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-wrap items-end justify-between gap-5">
+            <div>
+                <p class="text-xs font-black uppercase tracking-[.16em] text-amber-700">Explorer</p>
+                <h2 class="mt-2 font-display text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Qu’est-ce que vous cherchez ?</h2>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Des catégories pensées pour les besoins du quotidien au Cameroun.</p>
+            </div>
+            <a href="{% url 'marketplace:listing_list' %}"
+               class="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-black text-white transition hover:-translate-y-0.5">
+                Toutes les annonces
+                <i data-lucide="arrow-right" class="h-4 w-4" aria-hidden="true"></i>
+            </a>
+        </div>
+
+        <div class="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {% for category in categories %}
+                <a href="{% url 'marketplace:listing_list' %}?category={{ category.slug }}"
+                   class="category-card group min-w-0 rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                    <div class="flex items-start justify-between gap-3">
+                        <span class="category-icon grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-slate-950 text-white shadow-sm">
+                            {% cycle 'home' 'car-front' 'smartphone' 'sofa' 'shirt' 'wrench' 'briefcase-business' 'utensils' 'wheat' 'building-2' 'party-popper' 'paw-print' 'store' 'baby' 'more-horizontal' as category_icons silent %}
+                            <i data-lucide="{{ category_icons }}" class="h-5 w-5" aria-hidden="true"></i>
+                        </span>
+                        <span class="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-500">
+                            {{ category.active_children_count }} sous-catégorie{{ category.active_children_count|pluralize }}
+                        </span>
+                    </div>
+                    <h3 class="mt-4 line-clamp-2 font-display text-[14px] font-black leading-5 text-slate-950">{{ category.name }}</h3>
+                    {% with children=category.active_children %}
+                        {% if children %}
+                            <p class="mt-1 line-clamp-2 text-[11px] leading-5 text-slate-400">
+                                {% for child in children|slice:":3" %}{{ child.name }}{% if not forloop.last %} · {% endif %}{% endfor %}
+                            </p>
+                        {% else %}
+                            <p class="mt-1 text-[11px] text-slate-400">Voir les annonces</p>
+                        {% endif %}
+                    {% endwith %}
+                    <div class="mt-4 inline-flex items-center gap-1 text-[11px] font-black text-slate-700 transition group-hover:gap-2">
+                        Explorer <i data-lucide="arrow-up-right" class="h-3.5 w-3.5" aria-hidden="true"></i>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- CTA band -->
+<section class="border-y border-slate-200/70 bg-slate-50/75">
+    <div class="home-shell px-4 py-12 sm:px-6 lg:px-8">
+        <div class="rounded-[30px] bg-slate-950 p-6 text-white shadow-2xl sm:p-8 lg:p-10">
+            <div class="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+                <div>
+                    <p class="text-xs font-black uppercase tracking-[.16em] text-amber-300">Local, simple, direct</p>
+                    <h2 class="mt-2 max-w-3xl font-display text-3xl font-black tracking-tight sm:text-4xl">
+                        Un logement, un téléphone, un service ou un restaurant : publiez ce que vous proposez.
+                    </h2>
+                    <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
+                        Chaque annonce possède sa propre page partageable. Les visiteurs peuvent vous contacter par téléphone ou WhatsApp.
+                    </p>
+                </div>
+                <a href="{% url 'marketplace:create_listing' %}"
+                   class="inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-400 px-5 py-3.5 text-sm font-black text-slate-950 transition hover:-translate-y-0.5 hover:bg-amber-300">
+                    <i data-lucide="megaphone" class="h-4 w-4" aria-hidden="true"></i> Publier gratuitement
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Enterprise ads -->
+{% if enterprise_ads %}
+<section class="bg-white">
+    <div class="home-shell px-4 py-12 sm:px-6 lg:px-8">
+        <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-[.15em] text-amber-700">
+            <i data-lucide="megaphone" class="h-3.5 w-3.5" aria-hidden="true"></i> Entreprises
+        </div>
+        <div class="mt-4 grid gap-4 md:grid-cols-3">
+            {% for ad in enterprise_ads %}
+                <a href="{{ ad.target_url|default:'#' }}"
+                   {% if ad.target_url %}target="_blank" rel="noopener noreferrer"{% endif %}
+                   class="group overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-lg">
+                    <div class="flex items-center gap-3 p-3">
+                        {% if ad.image %}
+                            <img src="{{ ad.image.url }}" class="h-14 w-14 rounded-xl object-cover" alt="" loading="lazy" decoding="async">
+                        {% else %}
+                            <span class="grid h-14 w-14 place-items-center rounded-xl bg-slate-950 text-white">
+                                <i data-lucide="building-2" class="h-5 w-5" aria-hidden="true"></i>
+                            </span>
+                        {% endif %}
+                        <div class="min-w-0">
+                            <p class="truncate text-[10px] font-black uppercase tracking-wide text-slate-400">{{ ad.business_name }}</p>
+                            <p class="line-clamp-2 text-sm font-black text-slate-900">{{ ad.title }}</p>
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Listings grid -->
+<section class="home-section-pad bg-white">
+    <div class="home-shell px-4 sm:px-6 lg:px-8">
+        <div class="flex items-end justify-between gap-5">
+            <div>
+                <p class="text-xs font-black uppercase tracking-[.16em] text-amber-700">Découvrir</p>
+                <h2 class="mt-2 font-display text-3xl font-black tracking-tight text-slate-950">Annonces du moment.</h2>
+            </div>
+            <a href="{% url 'marketplace:listing_list' %}"
+               class="hidden items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-black text-white sm:inline-flex">
+                Voir tout <i data-lucide="arrow-right" class="h-4 w-4" aria-hidden="true"></i>
+            </a>
+        </div>
+        <div class="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {% for listing in listings %}
+                {% include 'marketplace/partials/listing_card.html' %}
+            {% empty %}
+                <div class="col-span-full rounded-[28px] border border-dashed border-slate-300 bg-slate-50 p-12 text-center">
+                    <div class="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-white text-slate-400 shadow-sm">
+                        <i data-lucide="package-open" class="h-6 w-6" aria-hidden="true"></i>
+                    </div>
+                    <h3 class="mt-4 font-display text-lg font-black">Aucune annonce publiée pour le moment.</h3>
+                    <p class="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-500">La première publication peut être la vôtre.</p>
+                    <a href="{% url 'marketplace:create_listing' %}"
+                       class="mt-5 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-black text-white">
+                        <i data-lucide="plus" class="h-4 w-4" aria-hidden="true"></i> Publier
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Feature trio -->
+<section class="border-y border-slate-200/70 bg-white">
+    <div class="home-shell px-4 py-14 sm:px-6 lg:px-8">
+        <div class="grid gap-5 md:grid-cols-3">
+            <div class="rounded-[26px] border border-slate-200 p-6 transition hover:-translate-y-1 hover:shadow-lg">
+                <div class="grid h-11 w-11 place-items-center rounded-2xl bg-slate-950 text-white">
+                    <i data-lucide="search" class="h-5 w-5" aria-hidden="true"></i>
+                </div>
+                <h3 class="mt-5 font-display text-lg font-black">Cherchez facilement</h3>
+                <p class="mt-2 text-sm leading-6 text-slate-500">Catégorie, ville, quartier, prix et tri pour retrouver rapidement ce qui vous intéresse.</p>
+            </div>
+            <div class="rounded-[26px] border border-slate-200 p-6 transition hover:-translate-y-1 hover:shadow-lg">
+                <div class="grid h-11 w-11 place-items-center rounded-2xl bg-amber-100 text-amber-700">
+                    <i data-lucide="megaphone" class="h-5 w-5" aria-hidden="true"></i>
+                </div>
+                <h3 class="mt-5 font-display text-lg font-black">Publiez simplement</h3>
+                <p class="mt-2 text-sm leading-6 text-slate-500">Photos, description, prix, localisation et durée de publication jusqu'à 30 jours.</p>
+            </div>
+            <div class="rounded-[26px] border border-slate-200 p-6 transition hover:-translate-y-1 hover:shadow-lg">
+                <div class="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-100 text-emerald-700">
+                    <i data-lucide="share-2" class="h-5 w-5" aria-hidden="true"></i>
+                </div>
+                <h3 class="mt-5 font-display text-lg font-black">Partagez partout</h3>
+                <p class="mt-2 text-sm leading-6 text-slate-500">Partage direct vers WhatsApp, Facebook, Instagram ou avec un simple lien.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+function homeHero(total){
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return {
+        current: 0,
+        timer: null,
+        progress: 0,
+        progressTimer: null,
+        duration: 4200,
+        running: false,
+        start(){
+            // Respect reduced-motion: show the first slide, do not autoplay.
+            if (prefersReducedMotion || total <= 1) return;
+            this.resume();
+        },
+        pause(){
+            this.running = false;
+            clearInterval(this.timer);
+            clearInterval(this.progressTimer);
+        },
+        resume(){
+            if (prefersReducedMotion || total <= 1 || this.running) return;
+            this.running = true;
+            this.restart();
+        },
+        restart(){
+            clearInterval(this.timer);
+            clearInterval(this.progressTimer);
+            this.progress = 0;
+            const started = Date.now();
+            this.timer = setInterval(() => this.next(), this.duration);
+            this.progressTimer = setInterval(() => {
+                this.progress = Math.min(100, ((Date.now() - started) / this.duration) * 100);
+            }, 50);
+        },
+        go(index){
+            this.current = index;
+            if (this.running) this.restart();
+        },
+        next(){
+            this.current = (this.current + 1) % total;
+            if (this.running) this.restart();
+        },
+        previous(){
+            this.current = (this.current - 1 + total) % total;
+            if (this.running) this.restart();
+        },
+        destroy(){
+            // Called automatically by Alpine when the component is removed.
+            clearInterval(this.timer);
+            clearInterval(this.progressTimer);
+        }
+    };
+}
+</script>
+{% endblock %}

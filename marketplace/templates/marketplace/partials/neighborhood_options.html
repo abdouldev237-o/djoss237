@@ -1,0 +1,4 @@
+<option value="">{% if neighborhoods %}Choisir un quartier{% else %}Aucun quartier disponible{% endif %}</option>
+{% for neighborhood in neighborhoods %}
+<option value="{{ neighborhood.slug }}"{% if selected_slug == neighborhood.slug %} selected{% endif %}>{{ neighborhood.name }}</option>
+{% endfor %}
