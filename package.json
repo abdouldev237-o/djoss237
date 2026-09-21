@@ -6,6 +6,6 @@
     "tailwindcss": "^4.1.10"
   },
   "scripts": {
-    "build:css": "@tailwindcss/cli -i ./static/src/tailwind.css -o ./static/marketplace/tailwind.css --minify"
+    "build:css": "tailwindcss -i ./static/src/tailwind.css -o ./static/marketplace/tailwind.css --minify"
   }
 }
