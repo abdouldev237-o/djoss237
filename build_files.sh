@@ -8,3 +8,5 @@ python3 manage.py collectstatic --noinput
 
 # Run database migrations
 python3 manage.py migrate --noinput
+
+python3 manage.py seed_marketplace
