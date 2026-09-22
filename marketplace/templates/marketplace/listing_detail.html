@@ -1,7 +1,12 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ listing.title }} — {{ platform_settings.site_name|default:'Marché Local' }}{% endblock %}
-
+{% block title %}{{ listing.title }} — Djoss237{% endblock %}
+{% block meta_description %}{{ listing.meta_description|default:listing.description|truncatechars:160 }}{% endblock %}
+{% block meta_robots %}index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1{% endblock %}
+{% block googlebot_robots %}index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1{% endblock %}
+{% block og_title %}{{ listing.title }} — Djoss237{% endblock %}
+{% block og_description %}{{ listing.meta_description|default:listing.description|truncatechars:160 }}{% endblock %}
+{% block og_type %}article{% endblock %}
 {% block extra_head %}
 <meta property="og:type" content="website">
 <meta property="og:title" content="{{ listing.title|escape }}">

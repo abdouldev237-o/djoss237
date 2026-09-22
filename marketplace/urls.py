@@ -1,11 +1,17 @@
 from django.urls import path
-
+from .seo import indexnow_key, llms_txt, robots_txt
+from django.contrib.sitemaps.views import sitemap
+from .sitemaps import SITEMAPS
 from . import views
 
 app_name = "marketplace"
 
 urlpatterns = [
     path("health/", views.health_check, name="health"),
+    path("robots.txt", robots_txt, name="robots_txt"),
+    path("sitemap.xml", sitemap, {"sitemaps": SITEMAPS}, name="sitemap"),
+    path("llms.txt", llms_txt, name="llms_txt"),
+    path("indexnow-key.txt", indexnow_key, name="indexnow_key"),
     path("", views.home, name="home"),
     path("annonces/", views.listing_list, name="listing_list"),
     path("annonces/publier/", views.create_listing, name="create_listing"),

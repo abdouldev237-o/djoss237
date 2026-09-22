@@ -25,7 +25,7 @@ if not SECRET_KEY:
     else:
         raise ImproperlyConfigured("DJANGO_SECRET_KEY is required when DEBUG=False")
 
-ALLOWED_HOSTS = [x.strip() for x in os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(",") if x.strip()]
+ALLOWED_HOSTS = [x.strip() for x in os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost,djoss237.vercel.app,.vercel.app").split(",") if x.strip()]
 CSRF_TRUSTED_ORIGINS = [x.strip() for x in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if x.strip()]
 
 INSTALLED_APPS = [
@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sitemaps",
     "marketplace",
     'cloudinary',
     'cloudinary_storage'
@@ -108,6 +109,18 @@ LANGUAGE_CODE = "fr-fr"
 TIME_ZONE = "Africa/Douala"
 USE_I18N = True
 USE_TZ = True
+
+SITE_NAME = os.getenv("DJANGO_SITE_NAME", "Djoss237").strip() or "Djoss237"
+SITE_URL = os.getenv("DJANGO_SITE_URL", "").strip().rstrip("/")
+GOOGLE_SITE_VERIFICATION = os.getenv("GOOGLE_SITE_VERIFICATION", "").strip()
+BING_SITE_VERIFICATION = os.getenv("BING_SITE_VERIFICATION", "").strip()
+INDEXNOW_KEY = os.getenv("INDEXNOW_KEY", "").strip()
+INDEXNOW_ENABLED = env_bool("DJANGO_INDEXNOW_ENABLED", False)
+SEO_DEFAULT_DESCRIPTION = os.getenv(
+    "SEO_DEFAULT_DESCRIPTION",
+    "Djoss237 — annonces locales au Cameroun : immobilier, véhicules, téléphones, services, emploi, restauration, agriculture et plus.",
+).strip()
+
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"

@@ -10,3 +10,5 @@ python3 manage.py collectstatic --noinput
 python3 manage.py migrate --noinput
 
 python3 manage.py seed_marketplace
+
+# python manage.py submit_indexnow --all-active
