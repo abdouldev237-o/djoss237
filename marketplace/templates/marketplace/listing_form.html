@@ -5,6 +5,7 @@
 {% block extra_head %}
 <style>
     .publish-shell{max-width:1180px;margin:0 auto}
+    .paper-mini{background-image:linear-gradient(to bottom,rgba(148,163,184,.14) 1px,transparent 1px);background-size:100% 20px}
     .publish-card{box-shadow:0 24px 70px rgba(15,23,42,.08)}
     .form-label{font-size:.72rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#64748b}
     .publish-input:focus{box-shadow:0 0 0 4px rgba(15,23,42,.05)}
@@ -62,6 +63,9 @@
                             <p class="form-label text-amber-600">{% if editing %}Modification{% else %}Nouvelle publication{% endif %}</p>
                             <h2 class="mt-1 font-display text-2xl font-black tracking-tight text-slate-950">{% if editing %}Améliorez votre annonce{% else %}Décrivez ce que vous proposez{% endif %}</h2>
                             <p class="mt-2 text-sm leading-6 text-slate-500">{% if editing %}Modifiez les informations, le prix, la localisation ou la durée de publication.{% else %}Une publication claire permet aux visiteurs de comprendre plus vite, même sur mobile.{% endif %}</p>
+                            <p class="mt-2 text-xs text-slate-500">
+    Les photos sont facultatives. Vous pouvez publier une annonce uniquement avec du texte, comme une petite annonce de journal.
+</p>
                         </div>
                         <div class="hidden h-11 w-11 shrink-0 place-items-center rounded-2xl bg-slate-950 text-white sm:grid"><i data-lucide="megaphone" class="h-5 w-5"></i></div>
                     </div>
@@ -231,16 +235,18 @@
                             </div>
                             {% endif %}
 
-                            <div>
-                                <div class="form-label mb-2 block">Photos</div>
-                                <label class="group flex cursor-pointer flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-5 py-9 text-center transition hover:border-slate-400 hover:bg-white">
-                                    <input id="id_images" name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple class="hidden">
-                                    <span class="grid h-14 w-14 place-items-center rounded-2xl bg-white text-slate-700 shadow-sm transition group-hover:-translate-y-1"><i data-lucide="images" class="h-6 w-6"></i></span>
-                                    <strong class="mt-4 text-sm font-black text-slate-900">{% if editing %}Ajouter des photos{% else %}Ajoutez jusqu’à 10 photos{% endif %}</strong>
-                                    <span class="mt-1 text-xs leading-5 text-slate-500">JPG, PNG ou WEBP · 5 Mo maximum par image</span>
-                                </label>
-                                <div id="imagePreview" class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-5"></div>
-                                {% for error in form.images.errors %}<small class="mt-1 block text-xs font-semibold text-rose-600">{{ error }}</small>{% endfor %}
+                            <div x-data="{format: '{% if editing and listing.has_images %}images{% else %}text{% endif %}', setText(){this.format='text';const input=document.getElementById('id_images');if(input)input.value='';}}">
+                                <div class="mb-3 flex flex-wrap items-end justify-between gap-3"><div><div class="form-label">Format de publication</div><h3 class="mt-1 font-display text-lg font-black text-slate-950">Photo ou annonce texte ?</h3><p class="mt-1 max-w-2xl text-xs leading-5 text-slate-500">Les photos sont facultatives. Une annonce peut être publiée avec un titre, un texte, une localisation et un contact, sans aucune image.</p></div><span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-[10px] font-black text-emerald-700"><i data-lucide="check" class="h-3.5 w-3.5"></i> Texte autorisé</span></div>
+                                <div class="grid gap-3 sm:grid-cols-2">
+                                    <button type="button" @click="format='text';setText()" :class="format==='text' ? 'border-slate-950 bg-slate-950 text-white shadow-lg' : 'border-slate-200 bg-white text-slate-700'" class="rounded-2xl border p-4 text-left transition hover:-translate-y-0.5"><span class="flex items-start gap-3"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl" :class="format==='text' ? 'bg-white/10 text-amber-300' : 'bg-slate-100 text-slate-700'"><i data-lucide="file-text" class="h-5 w-5"></i></span><span><strong class="block text-sm">Annonce texte</strong><small class="mt-1 block text-xs leading-5 opacity-70">Pour une annonce façon journal : aucun fichier photo nécessaire.</small></span></span></button>
+                                    <button type="button" @click="format='images'" :class="format==='images' ? 'border-amber-300 bg-amber-50 text-slate-950 shadow-lg' : 'border-slate-200 bg-white text-slate-700'" class="rounded-2xl border p-4 text-left transition hover:-translate-y-0.5"><span class="flex items-start gap-3"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl" :class="format==='images' ? 'bg-white text-amber-700' : 'bg-slate-100 text-slate-700'"><i data-lucide="images" class="h-5 w-5"></i></span><span><strong class="block text-sm">Avec photos</strong><small class="mt-1 block text-xs leading-5 opacity-70">Ajoutez jusqu’à 10 photos si elles aident à présenter votre annonce.</small></span></span></button>
+                                </div>
+                                <div x-show="format==='text'" x-transition.opacity class="mt-3 rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-amber-50 to-slate-50 p-5 sm:p-6"><div class="paper-mini rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div class="flex items-center justify-between gap-3"><span class="text-[9px] font-black uppercase tracking-[.16em] text-amber-700">Petites annonces</span><i data-lucide="newspaper" class="h-4 w-4 text-slate-400"></i></div><div class="mt-4 text-4xl font-black leading-none text-slate-200">“</div><strong class="mt-2 block font-display text-xl font-black text-slate-950">Votre titre fera office de une.</strong><p class="mt-2 text-xs leading-5 text-slate-500">Votre description restera au centre de l’annonce et sera visible comme un contenu court.</p></div></div>
+                                <div x-show="format==='images'" x-cloak x-transition.opacity class="mt-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                                    {% if editing and listing.images.all %}<div class="mb-4 rounded-2xl border border-slate-200 bg-white p-4"><div class="mb-3 flex items-center justify-between gap-3"><span class="text-xs font-black text-slate-700">Photos actuelles</span><span class="text-[10px] font-bold text-slate-400">{{ listing.images.count }}/10</span></div><div class="grid grid-cols-4 gap-2 sm:grid-cols-6">{% for image in listing.images.all %}<div class="aspect-square overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200"><img src="{{ image.image.url }}" alt="" class="h-full w-full object-cover"></div>{% endfor %}</div></div>{% endif %}
+                                    <label class="group flex cursor-pointer flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white px-5 py-9 text-center transition hover:border-slate-400 hover:bg-slate-50"><input id="id_images" name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple class="hidden"><span class="grid h-14 w-14 place-items-center rounded-2xl bg-slate-950 text-amber-300 shadow-sm transition group-hover:-translate-y-1"><i data-lucide="images" class="h-6 w-6"></i></span><strong class="mt-4 text-sm font-black text-slate-900">Ajouter jusqu’à 10 photos</strong><span class="mt-1 text-xs leading-5 text-slate-500">JPG, PNG ou WEBP · 5 Mo maximum par image</span></label>
+                                    <div id="imagePreview" class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-5"></div>{% for error in form.images.errors %}<small class="mt-1 block text-xs font-semibold text-rose-600">{{ error }}</small>{% endfor %}
+                                </div>
                             </div>
 
                             <input type="hidden" name="website" value="">

@@ -15,6 +15,7 @@
 {% if listing.images.first %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ listing.images.first.image.url }}">{% endif %}
 <style>
 .detail-main{max-width:1240px;margin:0 auto}.detail-card{box-shadow:0 24px 70px rgba(15,23,42,.07)}
+.paper-lines{background-image:linear-gradient(to bottom,rgba(148,163,184,.16) 1px,transparent 1px);background-size:100% 22px}
 .viewer-safe{min-width:0}.gallery-frame{aspect-ratio:4/3;min-height:360px}.thumb-scroll{overflow-x:auto;scrollbar-width:none}.thumb-scroll::-webkit-scrollbar{display:none}
 @media(max-width:640px){.gallery-frame{min-height:270px}.detail-card{border-radius:22px}}
 </style>
@@ -36,7 +37,11 @@
                         {% if cover %}
                         <img id="detailMainImage" src="{{ cover.image.url }}" alt="{{ listing.title|escape }}" class="h-full w-full object-cover transition duration-500" @click="lightbox=true;lightboxSrc=$el.src">
                         {% else %}
-                        <div class="grid h-full place-items-center text-slate-300"><i data-lucide="image" class="h-12 w-12"></i></div>
+                        <div class="paper-lines relative flex h-full flex-col justify-between bg-gradient-to-br from-white via-amber-50 to-slate-100 p-6 text-slate-950 sm:p-8">
+                            <div class="flex items-center justify-between gap-3"><span class="inline-flex items-center gap-2 rounded-full bg-slate-950 px-3 py-1.5 text-[10px] font-black uppercase tracking-[.14em] text-amber-300"><i data-lucide="file-text" class="h-3.5 w-3.5"></i> Annonce texte</span><span class="rounded-full bg-white/80 px-3 py-1.5 text-[10px] font-black text-slate-500">{{ listing.days_left }} jour{{ listing.days_left|pluralize }} restant{{ listing.days_left|pluralize }}</span></div>
+                            <div class="max-w-2xl"><div class="text-6xl font-black leading-none text-slate-200">“</div><p class="mt-2 text-[10px] font-black uppercase tracking-[.16em] text-amber-700">{{ listing.category.name }}</p><h2 class="mt-2 font-display text-3xl font-black leading-tight tracking-[-.04em] sm:text-4xl">{{ listing.title }}</h2><p class="mt-4 line-clamp-7 whitespace-pre-line text-sm leading-7 text-slate-600">{{ listing.description }}</p></div>
+                            <div class="flex flex-wrap items-center gap-2 border-t border-slate-200 pt-4 text-xs font-bold text-slate-500"><span class="inline-flex items-center gap-1.5"><i data-lucide="map-pin" class="h-3.5 w-3.5"></i>{{ listing.city.name }}{% if listing.neighborhood %} · {{ listing.neighborhood.name }}{% endif %}</span><span class="h-1 w-1 rounded-full bg-slate-300"></span><span>Publication texte</span></div>
+                        </div>
                         {% endif %}
                     {% endwith %}
                     <div class="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/55 to-transparent"></div>
@@ -68,7 +73,10 @@
 
             <article class="min-w-0 rounded-[30px] border border-slate-200 bg-white p-5 detail-card sm:p-7">
                 <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-[10px] font-black text-emerald-700"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> En ligne</div>
+                    <div class="flex flex-wrap items-center gap-2">
+                            <span class="inline-flex items-center gap-2 rounded-full {% if listing.is_active %}bg-emerald-50 text-emerald-700{% else %}bg-slate-100 text-slate-600{% endif %} px-3 py-1.5 text-[10px] font-black"><span class="h-1.5 w-1.5 rounded-full {% if listing.is_active %}bg-emerald-500{% else %}bg-slate-400{% endif %}"></span>{% if listing.is_active %} En ligne{% else %} {{ listing.get_status_display }}{% endif %}</span>
+                            {% if listing.is_text_only %}<span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-[10px] font-black text-amber-800"><i data-lucide="file-text" class="h-3 w-3"></i> Annonce texte</span>{% endif %}
+                        </div>
                     <span class="text-xs font-semibold text-slate-400">{{ listing.published_at|timesince }} · {{ listing.views_count }} vue{{ listing.views_count|pluralize }}</span>
                 </div>
 
@@ -86,6 +94,7 @@
                 </div>
 
                 <div class="mt-6 border-t border-slate-100 pt-6">
+                    <div class="mb-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-[.15em] text-amber-700"><i data-lucide="file-text" class="h-3.5 w-3.5"></i> Détails de l’annonce</div>
                     <p class="whitespace-pre-line text-sm leading-7 text-slate-600">{{ listing.description }}</p>
                 </div>
 

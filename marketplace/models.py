@@ -12,6 +12,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 
+
+
 from .validators import normalize_cameroon_phone, validate_cameroon_phone, validate_image_upload
 
 
@@ -163,7 +165,10 @@ class PlatformSettings(TimeStampedModel):
         return obj
 
 
+
+
 class Listing(TimeStampedModel):
+
     class Status(models.TextChoices):
         DRAFT = "draft", "Brouillon"
         PUBLISHED = "published", "Publié"
@@ -174,11 +179,13 @@ class Listing(TimeStampedModel):
         SUSPENDED = "suspended", "Suspendu"
         ARCHIVED = "archived", "Archivé"
 
+
     class PriceType(models.TextChoices):
         FIXED = "fixed", "Prix fixe"
         NEGOTIABLE = "negotiable", "Négociable"
         FREE = "free", "Gratuit"
         CONTACT = "contact", "Prix sur demande"
+
 
     class Condition(models.TextChoices):
         NEW = "new", "Neuf"
@@ -187,110 +194,636 @@ class Listing(TimeStampedModel):
         REFURBISHED = "refurbished", "Reconditionné"
         NOT_APPLICABLE = "na", "Non applicable"
 
+
     class PromoType(models.TextChoices):
         STANDARD = "standard", "Standard"
         FLASH = "flash", "Flash"
         URGENT = "urgent", "Urgent"
         PUSH = "push", "Push"
 
-    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="listings")
-    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="listings")
-    city = models.ForeignKey(City, on_delete=models.PROTECT, related_name="listings")
-    neighborhood = models.ForeignKey(Neighborhood, on_delete=models.PROTECT, related_name="listings", null=True, blank=True)
-    title = models.CharField(max_length=180)
-    slug = models.SlugField(max_length=240, unique=True)
-    description = models.TextField(max_length=5000)
-    price = models.DecimalField(max_digits=14, decimal_places=0, null=True, blank=True, validators=[MinValueValidator(Decimal("0"))])
-    currency = models.CharField(max_length=3, default="XAF")
-    price_type = models.CharField(max_length=20, choices=PriceType.choices, default=PriceType.CONTACT)
-    condition = models.CharField(max_length=20, choices=Condition.choices, default=Condition.NOT_APPLICABLE)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
-    promo_type = models.CharField(max_length=20, choices=PromoType.choices, default=PromoType.STANDARD)
-    duration_days = models.PositiveIntegerField(default=30, validators=[MinValueValidator(1), MaxValueValidator(30)])
-    published_at = models.DateTimeField(null=True, blank=True)
-    expires_at = models.DateTimeField(default=listing_default_expiry)
-    renewed_at = models.DateTimeField(null=True, blank=True)
-    sold_at = models.DateTimeField(null=True, blank=True)
-    moderation_note = models.TextField(blank=True)
-    rejection_reason = models.TextField(blank=True)
-    views_count = models.PositiveIntegerField(default=0)
-    whatsapp_clicks = models.PositiveIntegerField(default=0)
-    call_clicks = models.PositiveIntegerField(default=0)
-    share_count = models.PositiveIntegerField(default=0)
-    report_count = models.PositiveIntegerField(default=0)
-    last_viewed_at = models.DateTimeField(null=True, blank=True)
-    meta_title = models.CharField(max_length=180, blank=True)
-    meta_description = models.CharField(max_length=300, blank=True)
+
+    public_id = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="listings",
+    )
+
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.PROTECT,
+        related_name="listings",
+    )
+
+    city = models.ForeignKey(
+        City,
+        on_delete=models.PROTECT,
+        related_name="listings",
+    )
+
+    neighborhood = models.ForeignKey(
+        Neighborhood,
+        on_delete=models.PROTECT,
+        related_name="listings",
+        null=True,
+        blank=True,
+    )
+
+    title = models.CharField(
+        max_length=180,
+    )
+
+    # Auto-generated, so it must be allowed to be empty
+    # during ModelForm/full_clean() before save().
+    slug = models.SlugField(
+        max_length=240,
+        unique=True,
+        blank=True,
+    )
+
+    description = models.TextField(
+        max_length=5000,
+    )
+
+    price = models.DecimalField(
+        max_digits=14,
+        decimal_places=0,
+        null=True,
+        blank=True,
+        validators=[
+            MinValueValidator(
+                Decimal("0")
+            )
+        ],
+    )
+
+    currency = models.CharField(
+        max_length=3,
+        default="XAF",
+    )
+
+    price_type = models.CharField(
+        max_length=20,
+        choices=PriceType.choices,
+        default=PriceType.CONTACT,
+    )
+
+    condition = models.CharField(
+        max_length=20,
+        choices=Condition.choices,
+        default=Condition.NOT_APPLICABLE,
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.DRAFT,
+    )
+
+    promo_type = models.CharField(
+        max_length=20,
+        choices=PromoType.choices,
+        default=PromoType.STANDARD,
+    )
+
+    duration_days = models.PositiveIntegerField(
+        default=30,
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(30),
+        ],
+    )
+
+    published_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    expires_at = models.DateTimeField(
+        default=listing_default_expiry,
+    )
+
+    renewed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    sold_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    moderation_note = models.TextField(
+        blank=True,
+    )
+
+    rejection_reason = models.TextField(
+        blank=True,
+    )
+
+    views_count = models.PositiveIntegerField(
+        default=0,
+    )
+
+    whatsapp_clicks = models.PositiveIntegerField(
+        default=0,
+    )
+
+    call_clicks = models.PositiveIntegerField(
+        default=0,
+    )
+
+    share_count = models.PositiveIntegerField(
+        default=0,
+    )
+
+    report_count = models.PositiveIntegerField(
+        default=0,
+    )
+
+    last_viewed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    meta_title = models.CharField(
+        max_length=180,
+        blank=True,
+    )
+
+    meta_description = models.CharField(
+        max_length=300,
+        blank=True,
+    )
+
 
     class Meta:
-        ordering = ["-published_at", "-created_at"]
-        indexes = [
-            models.Index(fields=["status", "-published_at"]),
-            models.Index(fields=["user", "-created_at"]),
-            models.Index(fields=["category", "status"]),
-            models.Index(fields=["city", "status"]),
-            models.Index(fields=["promo_type", "status"]),
+        ordering = [
+            "-published_at",
+            "-created_at",
         ]
+
+        indexes = [
+            models.Index(
+                fields=[
+                    "status",
+                    "-published_at",
+                ]
+            ),
+
+            models.Index(
+                fields=[
+                    "user",
+                    "-created_at",
+                ]
+            ),
+
+            models.Index(
+                fields=[
+                    "category",
+                    "status",
+                ]
+            ),
+
+            models.Index(
+                fields=[
+                    "city",
+                    "status",
+                ]
+            ),
+
+            models.Index(
+                fields=[
+                    "promo_type",
+                    "status",
+                ]
+            ),
+
+            models.Index(
+                fields=[
+                    "expires_at",
+                    "status",
+                ]
+            ),
+        ]
+
         verbose_name = "Annonce"
         verbose_name_plural = "Annonces"
 
+
+    # ==========================================================
+    # VALIDATION
+    # ==========================================================
+
     def clean(self):
         super().clean()
-        if self.duration_days < 1 or self.duration_days > 30:
-            raise ValidationError({"duration_days": "La durée doit être comprise entre 1 et 30 jours."})
-        if self.category_id and not self.category.is_active:
-            raise ValidationError({"category": "Cette catégorie n'est plus disponible."})
-        if self.city_id and not self.city.is_active:
-            raise ValidationError({"city": "Cette ville n'est plus disponible."})
-        if self.neighborhood_id and self.neighborhood.city_id != self.city_id:
-            raise ValidationError({"neighborhood": "Le quartier doit appartenir à la ville sélectionnée."})
-        if self.neighborhood_id and not self.neighborhood.is_active:
-            raise ValidationError({"neighborhood": "Ce quartier n'est plus disponible."})
-        if self.price_type == self.PriceType.FIXED and self.price is None:
-            raise ValidationError({"price": "Un prix est requis pour un prix fixe."})
-        if self.price_type in {self.PriceType.FREE, self.PriceType.CONTACT}:
+
+        errors = {}
+
+
+        # ------------------------------------------------------
+        # Duration
+        # ------------------------------------------------------
+
+        if not 1 <= int(self.duration_days or 0) <= 30:
+
+            errors["duration_days"] = (
+                "La durée doit être comprise entre 1 et 30 jours."
+            )
+
+
+        # ------------------------------------------------------
+        # Category
+        # ------------------------------------------------------
+
+        if self.category_id:
+
+            if not Category.objects.filter(
+                pk=self.category_id,
+                is_active=True,
+            ).exists():
+
+                errors["category"] = (
+                    "Cette catégorie n'est plus disponible."
+                )
+
+
+        # ------------------------------------------------------
+        # City
+        # ------------------------------------------------------
+
+        if self.city_id:
+
+            if not City.objects.filter(
+                pk=self.city_id,
+                is_active=True,
+            ).exists():
+
+                errors["city"] = (
+                    "Cette ville n'est plus disponible."
+                )
+
+
+        # ------------------------------------------------------
+        # Neighborhood
+        # ------------------------------------------------------
+
+        if self.neighborhood_id:
+
+            neighborhood = (
+                Neighborhood.objects
+                .filter(pk=self.neighborhood_id)
+                .first()
+            )
+
+            if not neighborhood:
+
+                errors["neighborhood"] = (
+                    "Ce quartier n'existe pas."
+                )
+
+            else:
+
+                if (
+                    self.city_id
+                    and neighborhood.city_id != self.city_id
+                ):
+
+                    errors["neighborhood"] = (
+                        "Le quartier doit appartenir "
+                        "à la ville sélectionnée."
+                    )
+
+                elif not neighborhood.is_active:
+
+                    errors["neighborhood"] = (
+                        "Ce quartier n'est plus disponible."
+                    )
+
+
+        # ------------------------------------------------------
+        # Price
+        # ------------------------------------------------------
+
+        if (
+            self.price_type == self.PriceType.FIXED
+            and self.price is None
+        ):
+
+            errors["price"] = (
+                "Un prix est requis pour un prix fixe."
+            )
+
+
+        # Free / contact means no numeric price.
+        if self.price_type in {
+            self.PriceType.FREE,
+            self.PriceType.CONTACT,
+        }:
+
             self.price = None
 
+
+        # ------------------------------------------------------
+        # Publication expiration
+        # ------------------------------------------------------
+
+        if self.status == self.Status.PUBLISHED:
+
+            now = timezone.now()
+
+            published_reference = (
+                self.published_at
+                or now
+            )
+
+            if not self.expires_at:
+
+                errors["expires_at"] = (
+                    "Une date d'expiration est requise."
+                )
+
+            else:
+
+                max_expiry = (
+                    published_reference
+                    + timedelta(days=30)
+                )
+
+                if self.expires_at > max_expiry:
+
+                    errors["expires_at"] = (
+                        "Une annonce ne peut pas être "
+                        "publiée plus de 30 jours."
+                    )
+
+                if self.expires_at <= published_reference:
+
+                    errors["expires_at"] = (
+                        "La date d'expiration doit être "
+                        "postérieure à la date de publication."
+                    )
+
+
+        if errors:
+            raise ValidationError(errors)
+
+
+    # ==========================================================
+    # SLUG
+    # ==========================================================
+
+    def generate_slug(self):
+
+        base = (
+            slugify(
+                self.title
+            )
+            or "annonce"
+        )
+
+        unique_suffix = (
+            self.public_id.hex[:8]
+        )
+
+        self.slug = (
+            f"{base[:205]}"
+            f"-{unique_suffix}"
+        )
+
+        return self.slug
+
+
     def save(self, *args, **kwargs):
+
         if not self.slug:
-            base = slugify(self.title) or "annonce"
-            self.slug = f"{base[:205]}-{self.public_id.hex[:8]}"
-        super().save(*args, **kwargs)
+
+            self.generate_slug()
+
+        super().save(
+            *args,
+            **kwargs
+        )
+
+
+    # ==========================================================
+    # URL
+    # ==========================================================
 
     def get_absolute_url(self):
-        return reverse("marketplace:listing_detail", kwargs={"slug": self.slug})
+
+        return reverse(
+            "marketplace:listing_detail",
+            kwargs={
+                "slug": self.slug,
+            },
+        )
+
+
+    # ==========================================================
+    # PHOTO / TEXT HELPERS
+    # ==========================================================
+
+    @property
+    def has_images(self):
+
+        # Works with the related_name="images"
+        # on ListingImage.
+        return self.images.exists()
+
+
+    @property
+    def is_text_only(self):
+
+        return not self.has_images
+
+
+    @property
+    def display_format(self):
+
+        return (
+            "photo"
+            if self.has_images
+            else "text"
+        )
+
+
+    # ==========================================================
+    # ACTIVE / EXPIRATION
+    # ==========================================================
 
     @property
     def is_active(self):
-        return self.status == self.Status.PUBLISHED and self.expires_at > timezone.now()
+
+        return (
+            self.status == self.Status.PUBLISHED
+            and bool(self.expires_at)
+            and self.expires_at > timezone.now()
+        )
+
 
     @property
     def days_left(self):
-        if self.expires_at <= timezone.now():
+
+        if not self.expires_at:
             return 0
-        return max(0, (self.expires_at - timezone.now()).days)
+
+        remaining = (
+            self.expires_at
+            - timezone.now()
+        )
+
+        if remaining.total_seconds() <= 0:
+            return 0
+
+        return max(
+            1,
+            remaining.days,
+        )
+
+
+    @property
+    def is_expiring_soon(self):
+
+        if not self.expires_at:
+            return False
+
+        return (
+            self.is_active
+            and self.days_left <= 3
+        )
+
+
+    # ==========================================================
+    # STATUS ACTIONS
+    # ==========================================================
 
     def mark_sold(self):
+
+        now = timezone.now()
+
         self.status = self.Status.SOLD
-        self.sold_at = timezone.now()
-        self.save(update_fields=["status", "sold_at", "updated_at"])
+        self.sold_at = now
+
+        self.save(
+            update_fields=[
+                "status",
+                "sold_at",
+                "updated_at",
+            ]
+        )
+
+
+    def pause(self):
+
+        if self.status != self.Status.PUBLISHED:
+            raise ValidationError(
+                "Cette annonce n'est pas actuellement publiée."
+            )
+
+        self.status = self.Status.PAUSED
+
+        self.save(
+            update_fields=[
+                "status",
+                "updated_at",
+            ]
+        )
+
+
+    def resume(self):
+
+        if self.status != self.Status.PAUSED:
+            raise ValidationError(
+                "Cette annonce n'est pas en pause."
+            )
+
+        now = timezone.now()
+
+        self.status = self.Status.PUBLISHED
+
+        self.published_at = now
+
+        # Resume with the remaining configured duration,
+        # never beyond 30 days.
+        days = max(
+            1,
+            min(
+                30,
+                int(
+                    self.duration_days
+                    or 30
+                ),
+            ),
+        )
+
+        self.expires_at = (
+            now + timedelta(days=days)
+        )
+
+        self.save(
+            update_fields=[
+                "status",
+                "published_at",
+                "expires_at",
+                "updated_at",
+            ]
+        )
+
 
     def renew(self, days=None):
-        days = int(days or self.duration_days or PlatformSettings.load().listing_days or settings.PUBLIC_LISTING_DAYS)
-        days = max(1, min(30, days))
+
+        days = int(
+            days
+            or self.duration_days
+            or PlatformSettings.load().listing_days
+            or settings.PUBLIC_LISTING_DAYS
+            or 30
+        )
+
+        days = max(
+            1,
+            min(30, days),
+        )
+
         now = timezone.now()
+
         self.status = self.Status.PUBLISHED
+
         self.published_at = now
-        self.expires_at = now + timedelta(days=days)
+
+        self.expires_at = (
+            now + timedelta(
+                days=days
+            )
+        )
+
         self.renewed_at = now
+
         self.sold_at = None
-        self.save(update_fields=["status", "published_at", "expires_at", "renewed_at", "sold_at", "updated_at"])
+
+        self.duration_days = days
+
+        self.save(
+            update_fields=[
+                "status",
+                "published_at",
+                "expires_at",
+                "renewed_at",
+                "sold_at",
+                "duration_days",
+                "updated_at",
+            ]
+        )
+
 
     def __str__(self):
         return self.title
-
-
 class ListingImage(TimeStampedModel):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(upload_to=listing_image_upload_path, validators=[validate_image_upload])

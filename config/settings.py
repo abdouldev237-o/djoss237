@@ -77,7 +77,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 
 # Vercel provides DATABASE_URL as a PostgreSQL URI. Keep the fallback local so
 # Django's management commands can still run when the variable is unavailable.
-if DATABASE_URL.startswith(("postgres://", "postgresql://")):
+if DATABASE_URL.startswith(("postgres://", "postgresql://")) and not DEBUG:
     DATABASES = {
         "default": dj_database_url.parse(
             DATABASE_URL,
@@ -141,7 +141,7 @@ SESSION_COOKIE_AGE = 60 * 60 * 24 * 30
 CSRF_COOKIE_SAMESITE = "Lax"
 
 USE_HTTPS_SECURITY = env_bool("DJANGO_USE_HTTPS_SECURITY", False)
-if USE_HTTPS_SECURITY:
+if USE_HTTPS_SECURITY and not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
@@ -172,31 +172,32 @@ CACHES = {
     }
 }
 
+if not DEBUG:
 
-import cloudinary
-import cloudinary.uploader
-from cloudinary.utils import cloudinary_url
+    import cloudinary
+    import cloudinary.uploader
+    from cloudinary.utils import cloudinary_url
 
-CLOUDINARY_STORAGE = { 
-    "CLOUD_NAME":os.getenv('CLOUDINARY_CLOUD_NAME'),
-    "API_KEY":os.getenv('CLOUDINARY_API_KEY'),
-    "API_SECRET" :os.getenv('CLOUDINARY_API_SECRET')
-}
-
-cloudinary.config( 
-    cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME'), 
-    api_key = os.getenv('CLOUDINARY_API_KEY'), 
-    api_secret = os.getenv('CLOUDINARY_API_SECRET'),
-    secure=True
-)
-# Configuration       
-
-
-STORAGES = {
-    "default":{
-        "BACKEND":"cloudinary_storage.storage.MediaCloudinaryStorage"
-    },
-    "staticfiles":{
-        "BACKEND":"whitenoise.storage.CompressedManifestStaticFilesStorage"
+    CLOUDINARY_STORAGE = { 
+        "CLOUD_NAME":os.getenv('CLOUDINARY_CLOUD_NAME'),
+        "API_KEY":os.getenv('CLOUDINARY_API_KEY'),
+        "API_SECRET" :os.getenv('CLOUDINARY_API_SECRET')
     }
-}
+
+    cloudinary.config( 
+        cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME'), 
+        api_key = os.getenv('CLOUDINARY_API_KEY'), 
+        api_secret = os.getenv('CLOUDINARY_API_SECRET'),
+        secure=True
+    )
+    # Configuration       
+
+
+    STORAGES = {
+        "default":{
+            "BACKEND":"cloudinary_storage.storage.MediaCloudinaryStorage"
+        },
+        "staticfiles":{
+            "BACKEND":"whitenoise.storage.CompressedManifestStaticFilesStorage"
+        }
+    }

@@ -18,6 +18,10 @@
     .category-card:hover .category-icon{transform:rotate(-5deg) scale(1.06)}
     .spotlight-progress{transform-origin:left center}
     .safe-card{padding-bottom:max(1rem,env(safe-area-inset-bottom))}
+    .paper-lines{background-image:linear-gradient(to bottom,rgba(148,163,184,.16) 1px,transparent 1px);background-size:100% 22px}
+    .paper-glow{box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 24px 60px rgba(15,23,42,.10)}
+    .ticker-dot{animation:tickerPulse 1.8s ease-in-out infinite}
+    @keyframes tickerPulse{0%,100%{transform:scale(.85);opacity:.65}50%{transform:scale(1.15);opacity:1}}
 
     /* Hero carousel: stable stacking for enter/leave */
     .hero-slide{
@@ -69,9 +73,9 @@
                 </h1>
 
                 <p class="mt-6 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-                    Une plateforme simple pour les annonces locales : immobilier,
-                    véhicules, téléphones, services, emploi, restauration et bien plus.
-                    Pas de panier. Un contact direct.
+                    Le petit journal des opportunités locales au Cameroun : biens, produits,
+                    services, emplois, locations et annonces simples. Avec ou sans photo,
+                    chaque publication possède sa propre page partageable.
                 </p>
 
                 <form role="search"
@@ -164,8 +168,18 @@
                                                  {% endif %}
                                                  class="h-full w-full object-cover transition duration-700 group-hover:scale-105">
                                         {% else %}
-                                            <div class="grid h-full place-items-center text-slate-300">
-                                                <i data-lucide="image" class="h-12 w-12" aria-hidden="true"></i>
+                                            <div class="paper-lines paper-glow relative flex h-full flex-col justify-between bg-gradient-to-br from-white via-amber-50 to-slate-100 p-6 text-slate-950 sm:p-8">
+                                                <div class="flex items-center justify-between gap-3">
+                                                    <span class="inline-flex items-center gap-2 rounded-full bg-slate-950 px-3 py-1.5 text-[10px] font-black uppercase tracking-[.14em] text-amber-300"><span class="ticker-dot h-1.5 w-1.5 rounded-full bg-amber-300"></span> Annonce texte</span>
+                                                    <i data-lucide="file-text" class="h-5 w-5 text-slate-400" aria-hidden="true"></i>
+                                                </div>
+                                                <div class="relative">
+                                                    <div class="mb-4 font-display text-5xl font-black leading-none text-slate-200">“</div>
+                                                    <div class="text-[10px] font-black uppercase tracking-[.16em] text-amber-700">{{ listing.category.name }}</div>
+                                                    <div class="mt-2 line-clamp-3 font-display text-2xl font-black leading-tight sm:text-3xl">{{ listing.title }}</div>
+                                                    <p class="mt-4 line-clamp-4 text-sm leading-6 text-slate-500">{{ listing.description }}</p>
+                                                </div>
+                                                <div class="flex items-center justify-between gap-3 border-t border-slate-200 pt-4"><span class="text-xs font-bold text-slate-500">{{ listing.city.name }}{% if listing.neighborhood %} · {{ listing.neighborhood.name }}{% endif %}</span><span class="text-sm font-black text-slate-950">Lire l’annonce</span></div>
                                             </div>
                                         {% endif %}
                                     {% endwith %}
@@ -366,7 +380,8 @@
         <div class="flex items-end justify-between gap-5">
             <div>
                 <p class="text-xs font-black uppercase tracking-[.16em] text-amber-700">Découvrir</p>
-                <h2 class="mt-2 font-display text-3xl font-black tracking-tight text-slate-950">Annonces du moment.</h2>
+                <h2 class="mt-2 font-display text-3xl font-black tracking-tight text-slate-950">Le journal des annonces.</h2>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Photos ou texte seulement : découvrez les publications encore actives avant leur expiration.</p>
             </div>
             <a href="{% url 'marketplace:listing_list' %}"
                class="hidden items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-black text-white sm:inline-flex">
@@ -389,6 +404,29 @@
                     </a>
                 </div>
             {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Text announcement band -->
+<section class="bg-slate-50">
+    <div class="home-shell px-4 py-10 sm:px-6 lg:px-8">
+        <div class="overflow-hidden rounded-[30px] border border-slate-200 bg-white paper-glow">
+            <div class="grid gap-0 lg:grid-cols-[.9fr_1.1fr]">
+                <div class="bg-slate-950 p-6 text-white sm:p-8">
+                    <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-[.16em] text-amber-300"><span class="ticker-dot h-1.5 w-1.5 rounded-full bg-amber-300"></span> Format texte</div>
+                    <h2 class="mt-3 font-display text-2xl font-black sm:text-3xl">Une annonce n’a pas besoin de photo pour être publiée.</h2>
+                    <p class="mt-3 text-sm leading-6 text-slate-300">Décrivez votre offre comme dans une petite rubrique de journal : un titre clair, une description, une ville et un moyen de contact.</p>
+                    <a href="{% url 'marketplace:create_listing' %}" class="mt-6 inline-flex items-center gap-2 rounded-2xl bg-amber-400 px-4 py-3 text-sm font-black text-slate-950 transition hover:-translate-y-0.5 hover:bg-amber-300"><i data-lucide="file-plus-2" class="h-4 w-4"></i> Publier une annonce</a>
+                </div>
+                <div class="paper-lines p-6 sm:p-8">
+                    <div class="grid gap-4 sm:grid-cols-3">
+                        <div class="rounded-2xl border border-slate-200 bg-white p-4"><i data-lucide="type" class="h-5 w-5 text-amber-600"></i><strong class="mt-3 block text-sm">Titre</strong><p class="mt-1 text-xs leading-5 text-slate-500">Annonce claire et lisible.</p></div>
+                        <div class="rounded-2xl border border-slate-200 bg-white p-4"><i data-lucide="align-left" class="h-5 w-5 text-amber-600"></i><strong class="mt-3 block text-sm">Texte</strong><p class="mt-1 text-xs leading-5 text-slate-500">Jusqu’à 5 000 caractères.</p></div>
+                        <div class="rounded-2xl border border-slate-200 bg-white p-4"><i data-lucide="clock-3" class="h-5 w-5 text-amber-600"></i><strong class="mt-3 block text-sm">Temporaire</strong><p class="mt-1 text-xs leading-5 text-slate-500">Publication limitée à 30 jours.</p></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>

@@ -79,7 +79,7 @@ def create_public_listing(*, user, cleaned_data, uploaded_images):
     if user.is_blocked:
         raise ValidationError("Votre compte ne peut pas publier d'annonce.")
 
-    uploaded_images = list(uploaded_images)
+    uploaded_images = list(uploaded_images) or []
     max_images = int(getattr(settings, "PUBLIC_LISTING_MAX_IMAGES", 10))
     if len(uploaded_images) > max_images:
         raise ValidationError(f"Vous pouvez envoyer au maximum {max_images} images.")
@@ -109,20 +109,17 @@ def create_public_listing(*, user, cleaned_data, uploaded_images):
         duration_days=duration_days,
     )
 
-    # IMPORTANT:
-    # Generate the slug before full_clean(), because slug is a
-    # required model field.
-    base_slug = slugify(listing.title) or "annonce"
-    listing.slug = (
-        f"{base_slug[:205]}-{listing.public_id.hex[:8]}"
-    )
+# Generate slug BEFORE full_clean().
+    listing.generate_slug()
 
     listing.full_clean()
     listing.save()
 
-    for index, image in enumerate(uploaded_images, start=1):
+    for index, image in enumerate(uploaded_images[:10], start=1):
         validate_image_upload(image)
         ListingImage.objects.create(listing=listing, image=image, position=index, is_cover=(index == 1))
+   
+
 
     user.last_seen_at = now
     user.save(update_fields=["last_seen_at"])

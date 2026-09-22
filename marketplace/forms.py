@@ -80,6 +80,7 @@ class PublicListingForm(forms.ModelForm):
         required=False,
         widget=MultipleFileInput(
             attrs={
+                "multiple": True,
                 "accept": "image/jpeg,image/png,image/webp",
             }
         ),
